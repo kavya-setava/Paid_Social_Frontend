@@ -1,0 +1,269 @@
+{
+  "formFields": [
+    {
+      "key": "socialiteLink",
+      "label": "Socialite Link",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "mondayLink",
+      "label": "Monday Link",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "youtubeChannel",
+      "label": "YouTube Channel",
+      "type": "select",
+      "required": true,
+      "options": [
+        "104 TEST CHANNEL",
+        "AfricaOnNetflix",
+        "Cielo Grande",
+        "Netflix",
+        "Netflix After School",
+        "Netflix Anime",
+        "NetflixMY",
+        "Netflix Brasil",
+        "Netflix Deutschland, Österreich und Schweiz",
+        "Netflix España",
+        "Behind the streams",
+        "Netflix France",
+        "Netflix Futures Italia",
+        "Netflix Greece",
+        "Netflix India",
+        "Netflix India Shorts",
+        "Netflix Is A Joke",
+        "Netflix Israel",
+        "Netflix Italia",
+        "Netflix Japan",
+        "Netflix Jr.",
+        "Netflix Junior Italia",
+        "Netflix Korea",
+        "Netflix Latinoamérica",
+        "Netflix MENA",
+        "Netflix Magyarország",
+        "Netflix Music",
+        "Netflix Nederland & België",
+        "Netflix Nordic",
+        "Netflix Pawa",
+        "Netflix Philippines",
+        "Netflix Polska",
+        "Netflix Portugal",
+        "Netflix Romania",
+        "Netflix Russia",
+        "Netflix Thailand",
+        "Netflix Türkiye",
+        "Netflix Ukraine",
+        "Netflix Vietnam",
+        "Netflix Česká republika",
+        "Stranger Things",
+        "The Swoon",
+        "The Witcher Netflix",
+        "WeAreNetflix",
+        "Élite Netflix",
+        "APAC (ALL)",
+        "EMEA (ALL)",
+        "LATAM (ALL)",
+        "GLOBAL (ALL)",
+        "Netflix K-Content",
+        "Netflix DOPOSCUOLA",
+        "UCAN (ALL)",
+        "Netflix Taiwan",
+        "Netflix Games",
+        "Netflix Sports",
+        "Netflix Australia & New Zealand",
+        "Netflix Family"
+      ]
+    }
+  ],
+  "dynamicSections": {
+    "Debut": [
+      {
+        "sectionTitle": "ASSET REVIEW CHECKBOXES *",
+        "process": "Asset Review",
+        "items": [
+          "Use correct asset type according to the YouTube upload guidelines, based on language of origin from NTV, Asset type, Buying team, Made for Kids, unless otherwise noted.",
+          "Yes, Netflix bug is present for PRE assets and not required for POST assets.",
+          "Yes, date is present in end card for PRE assets if applicable, launch date validated with NTV/NOC, phrasing aligns with launch window, incorrect references flagged, and date format (MM/DD or DD/MM) checked.",
+          "Yes, mid card text/graphics/title card are spell-checked, in the correct language, and validated via Templator Doc, MMT, or NTV if needed.",
+          "Yes, verified talent name match with the Templater Sheet, if there is no Templater Sheet, use NTV",
+          "Yes, for Toolkit Debuts, confirmed slates and title cards are not localized; only subs used.",
+          "Yes, AV Hindi asset includes TiLoc title in Hindi/English, English GB end cards, English GFX, and English subtitles.",
+          "Yes, AV Tamil & Telugu asset includes English title, English GB end cards, English GFX, and English subtitles.",
+          "Yes. stitched asset with same specs, IAAS status, frame rate, and dimensions as original.",
+          "Yes, only required files kept in Final folder on Vandam; extra files removed.",
+          "Yes, grabbed PAL deep link after stitching and updated in NPT if applicable.",
+          "Yes, final asset file named with \"_endscreen\" as per naming convention.",
+          "Yes, subitems were updated for the Monday board.",
+          "Yes, referred APAC Dos & Don'ts (https://docs.google.com/spreadsheets/d/1bNhxUh7O-LtCz6DC8GK6MVe8Emqgr8mMxhU08QoYxpQ/edit?gid=519975496#gid=519975496)",
+          "Yes, referred EMEA Dos & Don'ts (https://docs.google.com/spreadsheets/d/10ZsPVLz4MkErQvQay5zEenFdUm38WhqB7d3ocpbkJJs/edit?gid=519975496#gid=519975496)",
+          "Yes, referred UCAN & LATAM Dos & Don'ts. (https://docs.google.com/spreadsheets/d/1iAPyCnblBX9miT4sqzdBvda6zPME-FhVVqmZncmm4fo/edit?gid=519975496#gid=519975496)",
+          "Used NTV/MMT to check the translations since Templater doc is not available",
+          "Translated text (burned-in subs) is in the correct language, with subs timed well and easy to read, not requiring word-for-word dialogue match.",
+          "Title attribution matches the Templator Sheet or NTV, with minor punctuation differences (/, !, .) not flagged.",
+          "Checked the Netflix Bug placement and regional ratings wherever it is applicable",
+          "Checked Audio & Video Sync- Sound aligns with what's seen on screen.",
+          "Checked the very last scene (before the extra end screen we stitch) is verified. This includes ensuring any original credits match MMT doc or logos or any PG rated bug look clear",
+          "Checked for visual glitches (blurs, freezing, missing video, color issues) and audio issues (static, pops, sudden cuts).",
+          "Checked for file length, size, resolution, and dimensions are checked to meet guidelines and ensure optimal quality and performance.",
+          "Checked for localized graphics or mid-cards without MMT/TT translation, language and spelling are verified and flagged to POC or AVP if needed.",
+          "Checked that English channels do not have EN dubbing with burned-in subtitles, except for shorts videos.",
+          "Checked for Non-debut in Africa on Netflix, we can use EN-GB asset instead of EN-US or confirming that using EN-US is fine. The origin is not vital as long as the asset is in English and has English subs.",
+          "Checked for Non-debut in Philippines channel we can use the provided EN-US sub asset",
+          "Yes, Resubmission of QC Rejection"
+        ]
+      },
+      {
+        "sectionTitle": "COPY REVIEW CHECKBOXES *",
+        "process": "Copy Review",
+        "items": [
+          "Yes, YouTube title uses EN title or LLO-originated title as per language.",
+          "Yes, title was cross-verified with NTV.",
+          "Yes, the relevant translations were verified in MMT doc.",
+          "Yes, the bar character \"I\" was used correctly in the YouTube title (not replaced with the capital letter \"I\"), and proper spacing around the bar was verified.",
+          "Yes, emojis in the title were reviewed and confirmed.",
+          "Yes, YouTube title character count is within the 100-character limit.",
+          "Yes, description is within the 5000-character limit.",
+          "Yes, description format follows the YouTube Copy Optimizer template with social and subscribe links.",
+          "Yes, title and character names were cross-checked with Terminology Tool.",
+          "Yes, talent names were verified using NTV.",
+          "Yes, original credits like \"Season,\" \"Only on Netflix,\" etc., were verified in MMT or Text Treatment docs.",
+          "Yes, PRE asset copies include the correct localized date matching NOC; POST assets do not include dates.",
+          "Yes, all URLs are hyperlinked with \"https://\" prefix.",
+          "Yes, Info 150 provided by NTV was included in accordance with the text optimizer template and was season-specific as per the campaign requirements.",
+          "Yes, ODP link in the description was checked and lands on the correct page.",
+          "Yes, tags include correct title and talent names from NTV.",
+          "Yes, total tag characters do not exceed the 450-character limit.",
+          "Yes, localized tags were generated and shared in final comms if not provided.",
+          "Yes, tags were updated in the YouTube tags section in Monday/Socialite.",
+          "Yes, bar \"I\" was used properly and not replaced with capital \"I\" in the YouTube title.",
+          "Yes, \"Netflix\" spelling was verified for accuracy.",
+          "Yes, double spaces and double quotations in the title were corrected.",
+          "Yes, subitems were updated on the Monday board and QC team was notified via email.",
+          "Yes, Resubmission of QC Rejection"
+        ]
+      },
+      {
+        "sectionTitle": "THUMBNAIL VERSIONS & LOCALIZED VERSIONS CHECKBOXES *",
+        "process": "Thumbnail versions & Localized versions",
+        "items": [
+          "Yes, thumbnail options/mockups were shared and uploaded to the thumbnail image repository. Clean image assets were also prepared and stored to create final versions upon approval.",
+          "Yes, took 4-5 screenshots from the video and added appropriate text overlay.",
+          "Yes, never shared clean thumbnails; only shared shareable links for mockup thumbnails with MediaOps lead.",
+          "Yes, after uploading to the Vandam folder, selected the thumbnails with text overlay to be shared.",
+          "Yes, shared the thumbnail link with the respective requestor/media ops after selecting \"Link Copied.\"",
+          "Yes, after receiving the approved thumbnail, made the versions and localized versions (if needed), and uploaded them to the campaign folder.",
+          "Yes, the thumbnail file size is under 1.9 MB, the text overlay aligns with the Text Treatments document or MediaOps-provided overlay, and the final asset was exported in JPG format.",
+          "Yes, a total of 10 thumbnail versions were created, including Text Overlay, Bug, Clean, 1×1 Bug, 1×1 Clean, Product Clean, Publicity, 9×16, and 4×5 clean and bugged formats.",
+          "Yes, correct thumbnail resolutions and naming conventions were followed. Product Clean thumbnails were created at 1920×1080, while all other thumbnail versions were created at 1280×720. File names adhered to the approved naming format, including version and localization identifiers.",
+          "Yes, uploaded approved thumbnails to the campaign folder in Vandam, following folder naming conventions by Deliverable/Asset type.",
+          "Yes, created a subfolder for localized versions and uploaded them there.",
+          "Yes, clicked the shareable link to share with the respective teams.",
+          "Yes, added the Thumbnail versions folder link to the debut sheet, Socialite post, and project level.",
+          "Yes, swapped the approved thumbnail in NPT if the asset was already posted with a placeholder thumbnail.",
+          "Yes, updated subitems for the Monday board and shared the email with the QC team.",
+          "Yes, Resubmission of QC Rejection"
+        ]
+      },
+      {
+        "sectionTitle": "NPT POSTING AND CAMPAIGN LINKING *",
+        "process": "NPT Posting & Rest",
+        "items": [
+          "Yes, notes or special instructions were checked across Monday, Socialite, Slack, and Email.",
+          "Yes, the full Email, Monday, and Slack threads were read for complete context.",
+          "Yes, the asset was selected irrespective of the channels and was linked to the correct campaign listed on Socialite.",
+          "Yes, creative team and spot concept were updated in NPT.",
+          "NA",
+          "Yes, Resubmission of QC Rejection"
+        ]
+      },
+      {
+        "sectionTitle": "SCHEDULE *",
+        "process": "NPT Posting & Rest",
+        "items": [
+          "Yes, NPT analytics were added, and the schedule (date, time, zone, conflicts, visibility) matched the Socialite or debut sheet.",
+          "Schedule-->>Yes, confirming that the Socialite post publish date and time were reviewed against the Project Earliest Date and Time listed in Socialite. The post is getting published at the same time as, or later than, the Project Earliest Date and Time. (Note: The Project level Earliest Post Date and Time must always be the same as, or earlier than, the Socialite post publish date and time.)",
+          "Yes, the calendar invite was sent after scheduling the asset.",
+          "Yes, for Korea/K-content/manual Public posts, the calendar invite was sent 15 minutes before go-live.",
+          "NA",
+          "Yes, Resubmission of QC Rejection"
+        ]
+      },
+      {
+        "sectionTitle": "YT STUDIO *",
+        "process": "NPT Posting & Rest",
+        "items": [
+          "Yes, endscreen elements were added per standard and any specific regional instructions (e.g., Korea/K-content).",
+          "Yes, geo-fencing was applied as per YouTube upload policy and channel requirements.",
+          "Yes, Content ID was enabled correctly for debuts based on priority: EN-US > country of origin > other EN channels, and for AV single requests only.",
+          "Yes, SRT, metadata, and audio files were provided, synced, and added properly.",
+          "Yes, live link and Socialite status were updated.",
+          "Yes, title and description selection in YT Studio were checked, especially for Nordics.",
+          "Yes, YT links were added to the debut sheet for EMEA, UCAN, and LATAM (APAC after QC).",
+          "Yes, final internal communications were sent for review by QMs or Senior Agents.",
+          "Yes, relevant playlist was checked and added to the endscreen element.",
+          "Yes, SRTs/Subtitles/Closed Captions are in the correct language, timed to dialogue, not expected to match word-for-word, and overlap with midcards or graphics should not be flagged.",
+          "Yes for endscreen if there are buttons or links or videos, that they actually work and lead to the right place.",
+          "Yes, No unlisted videos added in the end screen elements",
+          "Yes, Resubmission of QC Rejection"
+        ]
+      },
+      {
+        "sectionTitle": "REGIONAL UPDATES AND MONDAY BOARD MANAGEMENT *",
+        "process": "NPT Posting & Rest",
+        "items": [
+          "Yes, referred to the APAC Update, Dos & Don'ts: APAC Update (https://docs.google.com/spreadsheets/d/1bNhxUh7O-LtCz6DC8GK6MVe8Emqgr8mMxhU08QoYxpQ/edit?gid=519975496#gid=519975496)",
+          "Yes, referred to the EMEA Update, Dos & Don'ts: EMEA Update (https://docs.google.com/spreadsheets/d/10ZsPVLz4MkErQvQay5zEenFdUm38WhqB7d3ocpbkJJs/edit?gid=519975496#gid=519975496)",
+          "Yes, referred to the UCAN & LATAM Update, Dos & Don'ts: UCAN & LATAM Update (https://docs.google.com/spreadsheets/d/1iAPyCnblBX9miT4sqzdBvda6zPME-FhVVqmZncmm4fo/edit?gid=519975496#gid=519975496)",
+          "Yes, updated the subitems for the Monday board and shared full details in the QC thread by trafficker.",
+          "NA",
+          "Yes, Resubmission of QC Rejection"
+        ]
+      },
+      {
+        "sectionTitle": "FINAL COMMS CHECKED BY *",
+        "process": "NPT Posting & Rest",
+        "items": [
+          "NA - Please mention if not applicable",
+          "Self - Please mentioned if it did by own"
+        ]
+      }
+    ],
+    "Non Debut": [
+      {
+        "sectionTitle": "PLATFORM & COMMUNICATION *",
+       "items": [
+  "Platform -> Yes, notes or special instructions were checked across Monday, Socialite, Slack, and Email.",
+  "Platform -> Yes, the full Email, Monday, and Slack threads were read for complete context.",
+  "Asset -> Yes, the asset was reviewed according to the checklist, YouTube guidelines, and instruction document, covering audio/video sync, subtitles, glitches, bugs, mid cards, translations, launch dates, CTAs, file size, IAAS, technical specs, black screens, end cards, and end screens.",
+  "Asset -> Yes, in-burnt subtitles were checked to ensure no overlap with visuals and correct language for the channel.",
+  "Asset-> Yes, end screen stitching was completed in accordance with channel and AdTech requirements.Note: Made for Kids content should not include an end screen unless explicitly specified, as these channels follow separate outro and end card guidelines. Additionally, end screens should not be stitched for videos with a total duration of less than 25 seconds.",
+  "Thumbnail -> Yes, the thumbnail was verified — final vs used asset, text overlay accuracy, image quality, Netflix bug, resolution, and asset size.",
+  "Copy -> Yes, the final YouTube copy was added according to the YouTube Copy Text Optimizer. ( https://docs.google.com/spreadsheets/d/1p92pw_Oj7d8fvLOurYOY9ihM4fwq6R4J1dJUFLNJrbA/edit?gid=52904824#gid=52904824)",
+  "Copy -> Yes, the title, description, and tags were reviewed for proper terminologies, NTV, MMT, text treatments, and channel-specific language requirements.",
+  "Copy -> Yes, all YT tags from the requester were added, along with default and show tags per adtech/channel requirements.",
+  "Copy and CTA → Yes, for Korea/K-Content assets, verified that the relevant date is included in the asset and is accurately reflected in the post copy and pinned comment, where applicable.",
+  "Asset -> Yes, the asset was linked to the correct campaign as listed on Socialite.",
+  "Schedule-->> Yes, confirming that the Socialite post publish date and time were reviewed against the Project Earliest Date and Time listed in Socialite. The post is getting published at the same time as, or later than, the Project Earliest Date and Time. (Note: The Project level Earliest Post Date and Time must always be the same as, or earlier than, the Socialite post publish date and time.)",
+  "Schedule -> Yes, NPT analytics were added and the schedule (date, time, zone, conflicts, visibility) matched the Socialite or debut sheet.",
+  "Schedule -> Yes, the calendar invite was sent after scheduling the asset.",
+  "Schedule -> Yes, for Korea/K-content/manual Public posts, the calendar invite was sent 15 minutes before go-live.",
+  "YT Studio → Yes, end screen elements were added in accordance with standard guidelines and any applicable regional instructions (e.g., Korea/K-Content). [ Note: For Korea and K-Content channels, the two most recent Public videos from the same campaign must always be added to the end screen. Private or unlisted videos must not be included in end screen elements under any circumstances.]",
+  "YT Studio ->  Yes, geo-fencing was applied as per YouTube upload policy and channel requirements.",
+  "YT Studio ->  Yes, Content ID was enabled correctly for debuts based on priority: EN-US > country of origin > other EN channels, and for AV single requests only. (Not enabled for non-debut adtechs, Arcane, full episodes, Pokémon content.)",
+  "YT Studio ->  Yes, SRT, metadata, and audio files were provided, synced, and added properly.",
+  "Schedule ->  Yes, flags for Korea/K-content posts scheduled between 4–10 AM KST were resolved by 9 PM KST the previous day.",
+  "Communication ->  Yes, final internal communications were sent for review by QMs or Senior Agents.",
+  "Communication ->  Yes, final communications were sent via email (with screenshots) or Slack where needed.",
+  "Socialite Platform ->  Yes, live link and Socialite status were updated.",
+  "Monday Board →  Yes, the task was moved to the \"In QC on Monday\" board with all relevant details, including the NPT link, NPT/YT scheduling screenshots, completed sub-items, QC notes, and all required supporting screenshots.",
+  " Yes, the rejected asset has been corrected and resubmitted for QC",
+  "Live QC →  Yes, for Korea, K-Content, Japan, and Japan Anime channels, live QC is conducted by Leads/QM, and immediate QC email is shared with the QC team."
+]
+      }
+   
+    ]
+  }
+}

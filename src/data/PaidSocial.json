@@ -1,0 +1,185 @@
+{
+  "formFields": [
+    {
+      "key": "atLink",
+      "label": "AT Link",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "slackLink",
+      "label": "Slack Link",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "ytLink",
+      "label": "YouTube Link",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "checkboxSections": [
+    {
+      "sectionTitle": "META CHECKLIST",
+      "items": [
+        "Yes, the appropriate ad account was selected.",
+        "Yes, the campaign and ad set were selected as per the media document.",
+        "Yes, the Ad name was created using the Taxonomy Builder Doc (naming convention sheet).",
+        "Yes, the correct title page / Netflix handle was selected as per the AT or Campaign Detail document.",
+        "Yes, the media assets (Thumbnail and Video) were selected according to the placements mentioned in the media document.",
+        "Yes, the Primary Text, Headline, and Description were added. The default description \"Only on Netflix\" was included as required.",
+        "Yes, the appropriate Call-to-Action (CTA) was selected — \"Learn More\" for PRE and \"Watch Now\" for POST.",
+        "Yes, the Destination link (ODP) was added and tested to ensure it redirects correctly.",
+        "Yes, the ad was saved successfully for publishing.",
+        "Yes, the ad is currently OFF (not enabled) after trafficking.",
+        "Yes, a Calendar invite was sent with the enablement schedule for the ads, ad sets, and campaign based on the flight dates.",
+        "Yes, preview links were added in the PST/Campaign Details document and the requester has been informed accordingly.",
+        "Yes, the asset has been reviewed in line with the checklist, covering: Price messaging, Rating bugs, Audio/video sync, Subtitles, Glitches and bugs, Mid cards, Translations, Launch dates, CTAs, File size, IAAS, Technical specifications, Black screens, End cards",
+        "Yes, the approved copy is used for the ad",
+        "Yes, the rejected asset has been corrected and resubmitted for QC",
+        "NA (Not Applicable)"
+      ]
+    },
+    {
+      "sectionTitle": "GOOGLE ADS CHECKLIST",
+      "items": [
+        "Yes, the appropriate ad account was selected.",
+        "Yes, the campaign and ad set were checked as per the media document.",
+        "Yes, the YouTube video was added as per the media document.",
+        "Yes, the correct ODP link was used and verified to ensure it redirects properly.",
+        "Yes, the Display URL was added.",
+        "Yes, the appropriate CTA was selected — \"Learn More\" for PRE and \"Watch Now\" for POST.",
+        "Yes, the Title name was added in the Headline field.",
+        "Yes, the Companion Banner was selected — the black Netflix image from already uploaded assets.",
+        "Yes, the Ad name was created using the Taxonomy Builder Doc (naming convention sheet).",
+        "Yes, the ad was saved successfully to publish.",
+        "Yes, the ad is currently OFF (not enabled) after trafficking.",
+        "Yes, a Calendar invite was sent to enable ads, ad sets, and campaign as per the flight dates.",
+        "Yes, preview links were added in the PST/Campaign Details document and the requester was informed.",
+        "Yes, the asset has been reviewed in line with the checklist, covering: Price messaging, Rating bugs, Audio/video sync, Subtitles, Glitches and bugs, Mid cards, Translations, Launch dates, CTAs, File size, IAAS, Technical specifications, Black screens, End cards",
+        "Yes, the approved copy is used for the ad",
+        "Yes, the rejected asset has been corrected and resubmitted for QC",
+        "NA (Not Applicable)"
+      ]
+    },
+    {
+      "sectionTitle": "TIKTOK CHECKLIST",
+      "items": [
+        "Yes, the appropriate ad account was selected.",
+        "Yes, the campaign and ad set were selected as per the media document.",
+        "Yes, the Ad name was created using the Taxonomy Builder Doc (naming convention sheet).",
+        "Yes, the correct title page / Netflix handle was selected as per the AT or Campaign Detail document.",
+        "Yes, the media (Thumbnail and Video) were selected as per the media document according to placements.",
+        "Yes, the text was added as per the Socialite tool.",
+        "Yes, the appropriate CTA was selected — \"Learn More\" for PRE and \"Watch Now\" for POST.",
+        "Yes, the URL (ODP link) was added in the Destination URL field and verified to ensure it redirects.",
+        "Yes, the \"Direct users to deeplink first\" checkbox was ticked and the ODP link was added (redirect verified).",
+        "Yes, Unchecked authorization checkbox to share ad and campaign performance metrics on TikTok-branded or affiliated platforms.",
+        "Yes, the ad was saved successfully for publishing.",
+        "Yes, a Calendar invite was sent to enable ads, ad sets, and campaign as per the flight dates.",
+        "Yes, preview links were added in the PST/Campaign Details document and the requester was informed.",
+        "Yes, the asset has been reviewed in line with the checklist, covering: Price messaging, Rating bugs, Audio/video sync, Subtitles, Glitches and bugs, Mid cards, Translations, Launch dates, CTAs, File size, IAAS, Technical specifications, Black screens, End cards",
+        "Yes, the approved copy is used for the ad",
+        "Yes, the rejected asset has been corrected and resubmitted for QC",
+        "NA (Not Applicable)"
+      ]
+    },
+    {
+      "sectionTitle": "SNAPCHAT CHECKLIST",
+      "items": [
+        "Yes, the appropriate ad account was selected.",
+        "Yes, the campaign and ad set were selected as per the media document.",
+        "Yes, the Ad name was created using the Taxonomy Builder Doc (naming convention sheet).",
+        "Yes, the media (Thumbnail and Video) were selected as per the media document according to placements.",
+        "Yes, the public profile was selected as Netflix.",
+        "Yes, the Title name was added in the Headline field.",
+        "Yes, the media was uploaded using the Upload option.",
+        "Yes, the Shareable & Ad Favoriting checkbox options were enabled.",
+        "Yes, the Status checkbox option was selected to keep the ad Paused.",
+        "Yes, the Attachment was selected as Website.",
+        "Yes, the appropriate CTA was selected — \"More\" for PRE and \"Watch\" for POST.",
+        "Yes, the Status option was checked to pause the ad.",
+        "Yes, the ad was saved using Review & Publish.",
+        "Yes, a Calendar invite was sent to enable ads, ad sets, and campaign as per the flight dates.",
+        "Yes, preview links were added in the PST/Campaign Details document and the requester was informed.",
+        "Yes, the asset has been reviewed in line with the checklist, covering: Price messaging, Rating bugs, Audio/video sync, Subtitles, Glitches and bugs, Mid cards, Translations, Launch dates, CTAs, File size, IAAS, Technical specifications, Black screens, End cards",
+        "Yes, the approved copy is used for the ad",
+        "Yes, the rejected asset has been corrected and resubmitted for QC",
+        "NA (Not Applicable)"
+      ]
+    },
+    {
+      "sectionTitle": "REDDIT CHECKLIST",
+      "items": [
+        "Yes, the appropriate ad account was selected.",
+        "Yes, the campaign and ad set were selected as per the media document.",
+        "Yes, the Ad name was created using the Taxonomy Builder Doc (naming convention sheet).",
+        "Yes, the Creative Type (Video / Image) was selected as per the media document.",
+        "Yes, the Headline (Description) was filled using the 1x1 feed copy from the PST tool.",
+        "Yes, confirmation was taken from the requester before adding any Additional Text.",
+        "Yes, the video was uploaded by dragging/dropping and the 1x1 Reddit asset from the POP tool was used.",
+        "Yes, the appropriate Call to Action was selected — \"Learn More\" for PRE and \"Watch Now\" for POST.",
+        "Yes, the ad was saved and published using the Save button.",
+        "Yes, a Calendar invite was sent to enable ads, ad sets, and campaign as per the flight dates.",
+        "Yes, preview links were added in the PST/Campaign Details document and the requester was informed.",
+        "Yes, the asset has been reviewed in line with the checklist, covering: Price messaging, Rating bugs, Audio/video sync, Subtitles, Glitches and bugs, Mid cards, Translations, Launch dates, CTAs, File size, IAAS, Technical specifications, Black screens, End cards",
+        "Yes, the approved copy is used for the ad",
+        "Yes, the rejected asset has been corrected and resubmitted for QC",
+        "NA (Not Applicable)"
+      ]
+    },
+    {
+      "sectionTitle": "X (TWITTER) CHECKLIST",
+      "items": [
+        "Yes, the appropriate ad account was selected.",
+        "Yes, the campaign and ad set were selected as per the media document.",
+        "Yes, the Creative and Media option was clicked.",
+        "Yes, the media was uploaded using the Upload Media button on the top right.",
+        "Yes, the copy was added from the PST tool.",
+        "Yes, the thumbnail was changed using the Edit Media option.",
+        "Yes, the appropriate Call to Action was selected — \"Learn More\" for PRE and \"Watch Now\" for POST.",
+        "Yes, the Allow playback in embedded posts option was checked.",
+        "Yes, the Promoted only option was selected.",
+        "Yes, the Post option was clicked to Tweet.",
+        "Yes, the campaign and ad set were checked again as per the media document.",
+        "Yes, the Edit Ad Group option was selected.",
+        "Yes, the top left thread was clicked and a placeholder or already published ad was selected.",
+        "Yes, the Create Another Ad option was clicked on the top right corner.",
+        "Yes, the Use Existing Ad option was selected and the uploaded post was chosen.",
+        "Yes, the Ad name was created using the Taxonomy Builder Doc (naming convention sheet).",
+        "Yes, the Next button was clicked to publish the ad.",
+        "Yes, a Calendar invite was sent to enable ads, ad sets, and campaign as per the flight dates.",
+        "Yes, preview links were added in the PST/Campaign Details document and the requester was informed.",
+        "Yes, the asset has been reviewed in line with the checklist, covering: Price messaging, Rating bugs, Audio/video sync, Subtitles, Glitches and bugs, Mid cards, Translations, Launch dates, CTAs, File size, IAAS, Technical specifications, Black screens, End cards",
+        "Yes, the approved copy is used for the ad",
+        "Yes, the rejected asset has been corrected and resubmitted for QC",
+        "NA (Not Applicable)"
+      ]
+    },
+    {
+      "sectionTitle": "PAID YT UNLISTED LINK GENERATION",
+      "items": [
+        "Yes, notes or special instructions were checked across Airtable, Slack.",
+        "Yes, the asset was reviewed according to the checklist, Price Messaging, rating bugs, covering audio/video sync, subtitles, glitches, bugs, mid cards, translations, launch dates, CTAs, file size, IAAS, technical specs, black screens, end cards.",
+        "Yes, in-burnt subtitles were checked to ensure no overlap with visuals and correct language for the channel.",
+        "Yes, the title and description were prepared with proper terminologies, NTV, MMT, text treatments, NOC and channel-specific language requirements.",
+        "Yes, the thumbnail was taken from PST/Socialite and verified Clean image, image quality, resolution, and asset size.",
+        "Yes, if the Official Trailer 16x9 Clean thumbnail has been used.",
+        "Yes, the final YouTube copy was added according to the YouTube Copy Text Optimizer.",
+        "Yes, the assets are pushed to the correct NPT Campaign.",
+        "Yes, the posts are made Unlisted ASAP.",
+        "Yes, the YT Unlisted links are added to PST/Socialite.",
+        "Yes, the necessary details are updated in the PST/Socialite.",
+        "Yes, final communications were sent via Slack where needed.",
+        "Yes, the details are added to Global QC Base.",
+        "Yes, all the posts are sent to QC by Informing in the Slack",
+        "Yes, the handoff has been shared to QM.",
+        "Yes, the asset has been reviewed in line with the checklist, covering: Price messaging, Rating bugs, Audio/video sync, Subtitles, Glitches and bugs, Mid cards, Translations, Launch dates, CTAs, File size, IAAS, Technical specifications, Black screens, End cards",
+        "Yes, the approved copy is used for the ad",
+        "Yes, the rejected asset has been corrected and resubmitted for QC",
+        "NA (Not Applicable)"
+      ]
+    }
+  ]
+}

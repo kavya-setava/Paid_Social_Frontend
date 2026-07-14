@@ -1,0 +1,16 @@
+{
+  "checkboxGroup": {
+    "title": "Please check the relevant checkboxes that are applicable to your task *",
+    "items": [
+      "Yes, confirmed receipt via Socialite comment.",
+      "Schedule->> **Yes**, confirming that the Socialite post publish date and time were reviewed against the Project Earliest Date and Time listed in Socialite. The post is getting published at the same time as, or later than, the Project Earliest Date and Time. (Note: The Project level Earliest Post Date and Time must always be the same as, or earlier than, the Socialite post publish date and time.)",
+      "Yes, rescheduled the post in NPT.",
+      "Yes, added comment in Debut sheet Notes column.",
+      "Yes, created a comment in the debut sheet following the template, addressed the Campaign Ops lead(s), included the requestor for added context, and cc'd media ops YouTube.",
+      "Yes, confirmed back to Social Marketing on Socialite comment (Project level).",
+      "Yes, in Socialite, removed the channel in question from the original post.",
+      "Yes, created a new Socialite post for the channel in question with the appropriate details: (a. Enabled the YouTube Debut checkbox., b. Added the localized copy, thumbnail link, revised timing, etc., for that channel., c. Saved the post status as Scheduled.)",
+      "Yes, checked that the debut is showing up properly on that channel's calendar in Socialite."
+    ]
+  }
+}

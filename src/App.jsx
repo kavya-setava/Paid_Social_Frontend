@@ -1,122 +1,211 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+} from "react-router-dom";
+import PaidSocialLogin from "./paidSocial/pages/auth/Login/Login";
+import Login from "./components/OrganicSocialLoginjsx";
+import QMDashboard from "./components/OrganicSocialQMDashboard";
+import AgentDashboard from "./components/OrganicSocialAgentDashboard";
+import QADashboard from "./components/OrganicSocialQADashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
+import DashboardLayout from "./components/DashboardLayout";
+import ActiveAgents from "./components/ActiveAgents";
+import QAChecklistWrapper from "./components/QAChecklistWrapper";
+import AgentChecklistWrapper from "./components/AgentlistWrapper";
+import OrganicSocialRoleSelector from "./components/OrganicSocialRoleSelector";
+import ToastHost from "./components/ToastHost";
+import ConfirmHost from "./components/ConfirmHost";
+import { AuthProvider, useAuth } from "./context/AuthContext.Provider";
+import { normalizeRole } from "./utils/role";
+import "./App.css";
 
-function App() {
-  const [count, setCount] = useState(0)
+// ✅ Helper to get correct route for a user
+function getDefaultRoute(user) {
+  if (!user) return "/login";
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+  const roles = user.roles || [];
+  const role = normalizeRole(user.role);
 
-      <div className="ticks"></div>
+  if (roles.length > 1 && !role) return "/select-role";
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+  const ROLE_ROUTES = {
+    "QM": "/qm",
+    "AGENT": "/agent",
+    "QA": "/qa",
+  };
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+  return ROLE_ROUTES[role] || (roles.length > 1 ? "/select-role" : "/login");
 }
 
-export default App
+function AppContent() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  if (loading) {
+    return (
+      <div style={{
+        height: "100vh", display: "flex",
+        alignItems: "center", justifyContent: "center",
+        background: "#141414", color: "#ffffff",
+        fontFamily: "Arial, sans-serif",
+      }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{
+            width: "40px", height: "40px",
+            border: "3px solid #333",
+            borderTop: "3px solid #e50914",
+            borderRadius: "50%",
+            animation: "spin 0.8s linear infinite",
+            margin: "0 auto 16px",
+          }} />
+          <p style={{ color: "#888", margin: 0 }}>Loading...</p>
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  const currentUser = user
+    ? {
+      name: user.name || "",
+      email: user.email || "",
+      role: normalizeRole(user.role),
+      roles: user.roles || [],
+      userId: user.userId || "",
+      mediamintId: user.mediamintId || "",
+    }
+    : null;
+
+  const defaultRoute = currentUser ? getDefaultRoute(currentUser) : "/login";
+
+  return (
+    <div>
+      <ToastHost />
+      <ConfirmHost />
+      <Routes>
+
+          {/* ── Login ── */}
+          <Route
+            path="/login"
+            element={
+              currentUser
+                ? <Navigate to={defaultRoute} replace />
+                : <Login />
+            }
+          />
+          {/* ── Paid Social Login ── */}
+          <Route
+            path="/paid/login"
+            element={<PaidSocialLogin />}
+          />
+
+          {/* ── Role Selector ── */}
+          {/* Allowed either when logged in, or mid-login with a pending
+            multi-role choice (Option B: no token issued yet). */}
+          <Route
+            path="/select-role"
+            element={
+              currentUser || sessionStorage.getItem("pendingAuth")
+                ? <OrganicSocialRoleSelector />
+                : <Navigate to="/login" replace />
+            }
+          />
+
+          {/* ── QM Dashboard ── */}
+          <Route
+            path="/qm"
+            element={
+              <ProtectedRoute allowedRole="QM">
+                <DashboardLayout>
+                  <QMDashboard />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ── Agent Dashboard ── */}
+          <Route
+            path="/agent"
+            element={
+              <ProtectedRoute allowedRole="AGENT">
+                <DashboardLayout>
+                  <AgentDashboard />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ── QA Dashboard ── */}
+          <Route
+            path="/qa"
+            element={
+              <ProtectedRoute allowedRole="QA">
+                <DashboardLayout>
+                  <QADashboard />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ── Active Agents ── */}
+          <Route
+            path="/agents"
+            element={
+              <DashboardLayout>
+                <ActiveAgents />
+              </DashboardLayout>
+            }
+          />
+
+          {/* ── QA Checklist ── */}
+          <Route
+            path="/qa-checklist/:qaReviewId"
+            element={
+              <DashboardLayout>
+                <QAChecklistWrapper />
+              </DashboardLayout>
+            }
+          />
+
+          {/* ── Agent Checklist ── */}
+          <Route
+            path="/agent-checklist/:qaReviewId"
+            element={
+              <DashboardLayout>
+                <AgentChecklistWrapper />
+              </DashboardLayout>
+            }
+          />
+
+          {/* ── Default / ── */}
+          <Route
+            path="/"
+            element={
+              currentUser
+                ? <Navigate to={defaultRoute} replace />
+                : <Navigate to="/login" replace />
+            }
+          />
+
+          {/* ── Catch All ── */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
+
+        </Routes>
+    </div>
+  );
+}
+
+// ✅ AuthProvider wraps everything - only ONE place
+export default function App() {
+  return (
+    <Router>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </Router>
+  );
+}

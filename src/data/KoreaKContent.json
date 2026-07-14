@@ -1,0 +1,90 @@
+{
+  "formFields": [
+    {
+      "key": "typeOfAsset",
+      "label": "Type of Asset",
+      "type": "select",
+      "required": true,
+      "options": [
+        "Debut",
+        "Non Debut",
+        "NoN",
+        "TUDUM",
+        "Geeked Week",
+        "SAG",
+        "Channel Operations"
+      ]
+    },
+    {
+      "key": "socialiteLink",
+      "label": "Socialite Link",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "mondayLink",
+      "label": "Monday Link",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "youtubeTitleName",
+      "label": "YouTube Title Name",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "youtubeChannel",
+      "label": "YouTube Channel",
+      "type": "select",
+      "required": true,
+      "options": [
+        "Netflix Korea 넷플릭스 코리아",
+        "Netflix K-Content"
+      ]
+    },
+    {
+      "key": "nptSchedule",
+      "label": "NPT Schedule",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "finalCommsCheckedBy",
+      "label": "Final Comms Checked By",
+      "type": "text",
+      "required": true
+    }
+  ],
+  "checkboxGroup": {
+    "title": "Please check the relevant checkboxes that are applicable to your task *",
+    "items": [
+      "Yes, the asset has been thoroughly reviewed according to the checklist, YouTube guidelines, and instruction document. This includes checks on audio-video sync, subtitle accuracy, visual glitches, Netflix and ratings bugs, mid cards, translations, launch dates, CTAs, file size, IAAS inspection, technical specifications, black screens, end cards, end screens, title attribution, and all other relevant factors.",
+      "Yes, the date in the end card has been checked. For Korean-origin debuts, a date is mandatory; for other debuts, it's acceptable if the date is missing.",
+      "Yes, in-burnt subtitles (if present) have been verified for alignment with video content and channel language requirements, ensuring no overlap with visual elements.",
+      "Yes, the end screen has been stitched according to the respective channel and AdTech requirements. Channel-specific end screen for Netflix K-content Channel has been confirmed.",
+      "Yes, the thumbnail asset has been validated (Final Thumb vs Used Thumb), including text overlay accuracy, image quality, Netflix bug presence, resolution, and asset size.",
+      "Yes, for shorts thumbnail, visual quality has been ensured—no cut-off or shaky actor faces, and eyes are open within the provided time code.",
+      "Yes, all translations (titles, descriptions, burned-in subs) are in the correct language covering terminologies, NTV, MMT, text treatments, and channel-specific language requirements.",
+      "Yes, the presence or absence of a date in the asset has been reflected accurately in the YouTube copy.",
+      "Yes, the final copy has been confirmed and added to the post using the YouTube Copy Text Optimizer.",
+      "Yes, the asset has been pushed to the correct campaign on Socialite as per instructions.",
+      "Yes, geo-fencing has been applied correctly. South Korea and North Korea have been geo-blocked proactively for Korean pre-buy debuts.",
+      "Yes, the Notes section has been read thoroughly and all points addressed in the post.",
+      "Copy & CTA ➡️ Yes, for Netflix Korea and Korea/K-Content assets, CTAs were cross-checked with NTV for both pre- and post-assets. The relevant dates were verified as present in the asset and accurately reflected in the post copy, pinned comment (where applicable), description, and calendar invite.",
+      "Schedule→➡️ Yes, confirming that the Socialite post publish date and time were reviewed against the Project Earliest Date and Time listed in Socialite. The post is getting published at the same time as, or later than, the Project Earliest Date and Time. (Note: The Project level Earliest Post Date and Time must always be the same as, or earlier than, the Socialite post publish date and time.)",
+      "End Screen Element Review ➡️ Yes, end screen elements were reviewed and updated in accordance with guidelines. For Korea and K-Content channels, the two most recent public videos from the same campaign were added. Private or unlisted videos are not included in the end screen elements.",
+      "Yes, for K-Content channels, SRTs (if provided) are checked for proper naming conventions and aligned with metadata.",
+      "No need to flag for missing surnames or filler words in subtitles, as per current policy.",
+      "Yes, any flags found were escalated in the appropriate Slack channel tagging the correct POCs.",
+      "Yes, all inquiries regarding Saturday/Sunday posts were completed before Saturday at 11:00 a.m. (KST).",
+      "Monday Board →  Yes, the task was moved to the “In QC on Monday” board with all relevant details, including the NPT link, NPT/YT scheduling screenshots, completed sub-items, QC notes, and all required supporting screenshots.",
+      "Yes, for shorts, the calendar invite was sent 15 minutes prior to the scheduled publishing time. (Not applicable for FEEDs.)",
+      "Yes, content ID has been enabled for AVs on Netflix Korea and Netflix K-Content channels.",
+      "Yes, the live link was updated on Socialite and the Socialite status was updated accordingly.",
+      "Yes, the rejected asset has been corrected and resubmitted for QC.",
+      "Yes, the task was moved to the 'In QC on Monday' board.",
+      "Live QC →  Yes, for Korea, K-Content, Japan, and Japan Anime channels, live QC is conducted by Leads/QM, and immediate QC email is shared with the QC team."
+    ]
+  }
+}

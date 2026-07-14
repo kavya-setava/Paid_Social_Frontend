@@ -1,0 +1,26 @@
+.qa-select {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #404040;
+  background: #2a2a2a;
+  color: #e5e5e5;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.qa-select:hover {
+  border-color: #e50914;
+  background: #3a3a3a;
+}
+
+.qa-select:focus {
+  border-color: #e50914;
+  background-color: #e50914 !important;
+}
+.qa-select option:checked {
+  background: #e50914;
+  color: #ffffff;
+}

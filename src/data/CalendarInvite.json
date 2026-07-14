@@ -1,0 +1,34 @@
+{
+  "formFields": [
+    {
+      "key": "calendarInviteSubject",
+      "label": "Calendar Invite Subject",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "socialiteLink",
+      "label": "Socialite Link",
+      "type": "text",
+      "required": true
+    }
+  ],
+  "checkboxGroup": {
+    "title": "Please check the relevant checkboxes that are applicable to your task *",
+    "items": [
+      "Yes, the post is scheduled to go Public as per the Socialite public time and date.",
+      "Yes, Playlist status is currently public",
+      "Yes, the video has been added to the end screen elements of the provided videos in Socialite.",
+      "Yes, the Socialite Status has been updated as per the Calendar Invite.",
+      "Schedule --> Yes, confirming that the Socialite post publish date and time were reviewed against the Project Earliest Date and Time listed in Socialite. The post is getting published at the same time as, or later than, the Project Earliest Date and Time. (Note: The Project level Earliest Post Date and Time must always be the same as, or earlier than, the Socialite post publish date and time.)",
+      "Yes, the respective playlists have been added to the post.",
+      "Yes, the comment has been added and pinned.",
+      "Yes, the A/B testing thumbnail has been checked.",
+      "Yes, the thumbnail is reflecting properly for the Shorts post.",
+      "Yes, all the Soundtracks videos have been added to the playlist as per the Track Sequence order.",
+      "Yes, screenshots have been taken and replies have been sent to the Calendar via email.",
+      "Yes, the task has been sent to QC.",
+      "Yes, No unlisted videos are added in the playlist"
+    ]
+  }
+}

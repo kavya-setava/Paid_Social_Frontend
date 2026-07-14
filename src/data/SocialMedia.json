@@ -1,0 +1,42 @@
+{
+
+  "checkboxSections": [
+    {
+      "sectionTitle": "TWO STEP VERIFICATION CODE *",
+      "items": [
+        "Yes, DMed the code to the user.",
+        "Yes, updated the Monday board and UT sheet.",
+        "NA"
+      ]
+    },
+    {
+      "sectionTitle": "ACCESS REQUEST *",
+      "items": [
+        "Yes, for Full-Time Employee access provided and updated the Monday board and UT sheet.",
+        "Yes, for Agency, checked the duration to provide the access, provided access, and updated the Monday board and UT sheet.",
+        "Yes, if duration provided, sent the calendar invite.",
+        "NA"
+      ]
+    },
+    {
+      "sectionTitle": "ACCESS REMOVE / TAKEDOWN *",
+      "items": [
+        "Yes, removed the access from the platform.",
+        "Yes, informed the user.",
+        "Yes, updated the Monday board and UT sheet.",
+        "NA"
+      ]
+    },
+    {
+      "sectionTitle": "PAGE CREATION *",
+      "items": [
+        "Yes, created the page in Facebook/Instagram/Twitter/TikTok/Snapchat.",
+        "Yes, added the details for Instagram/Twitter/TikTok/Snapchat in 1P.",
+        "Yes, updated Airtable and Sprinklr.",
+        "Yes, informed the requester.",
+        "Yes, updated the Monday board and UT sheet.",
+        "NA"
+      ]
+    }
+  ]
+}
