@@ -70,7 +70,7 @@ const Login = () => {
         <div className="netflix-login-container">
             {/* Background Overlay */}
             <div className="netflix-background-overlay"></div>
-
+        
             {/* Top Header Logo */}
             <header className="netflix-header">
                 <h1 className="netflix-logo">paidSocial</h1>

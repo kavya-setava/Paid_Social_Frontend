@@ -1,0 +1,61 @@
+.status-cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.status-card {
+  background-color: #0d0d0d;
+  border: 1px solid #1e1e1e;
+  border-radius: 6px;
+  padding: 16px;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.status-card:hover {
+  border-color: #333333;
+  background-color: #121212;
+}
+
+.status-card.active {
+  border-color: #e50914;
+  background-color: #140506; /* Subdued red tint variant for active card background */
+}
+
+.status-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.status-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #888888;
+}
+
+.status-card.active .status-label {
+  color: #ffffff;
+}
+
+.status-count {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Accent top-bar instead of bottom-bar for a clean, modern dark UI accent */
+.status-indicator-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background-color: var(--accent-color);
+}

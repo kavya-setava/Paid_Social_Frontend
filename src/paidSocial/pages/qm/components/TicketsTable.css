@@ -1,0 +1,60 @@
+.table-wrapper {
+  background: #0d0d0d;
+  border: 1px solid #1e1e1e;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.qm-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+.qm-table th {
+  background-color: #121212;
+  color: #888888;
+  font-weight: 600;
+  padding: 14px 16px;
+  border-bottom: 1px solid #1e1e1e;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.qm-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #1a1a1a;
+  color: #cccccc;
+}
+
+.qm-table tbody tr:hover {
+  background-color: #141414;
+}
+
+.bold-text {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* High Contrast Dark Variant Status Badges */
+.status-tag.open { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
+.status-tag.progress { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2); }
+.status-tag.done { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+
+.table-loading, .no-data {
+  text-align: center;
+  padding: 40px;
+  color: #666666;
+  background-color: #0d0d0d;
+}

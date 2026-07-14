@@ -13,6 +13,7 @@ import AgentDashboard from "./components/OrganicSocialAgentDashboard";
 import QADashboard from "./components/OrganicSocialQADashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardLayout from "./components/DashboardLayout";
+import PaidSocialQMDashboard from "./paidSocial/pages/qm/pages/Dashboard"; // ✅ Added new Paid Social dashboard 
 import ActiveAgents from "./components/ActiveAgents";
 import QAChecklistWrapper from "./components/QAChecklistWrapper";
 import AgentChecklistWrapper from "./components/AgentlistWrapper";
@@ -79,7 +80,6 @@ function AppContent() {
       mediamintId: user.mediamintId || "",
     }
     : null;
-
   const defaultRoute = currentUser ? getDefaultRoute(currentUser) : "/login";
 
   return (
@@ -88,113 +88,128 @@ function AppContent() {
       <ConfirmHost />
       <Routes>
 
-          {/* ── Login ── */}
-          <Route
-            path="/login"
-            element={
-              currentUser
-                ? <Navigate to={defaultRoute} replace />
-                : <Login />
-            }
-          />
-          {/* ── Paid Social Login ── */}
-          <Route
-            path="/paid/login"
-            element={<PaidSocialLogin />}
-          />
+        {/* ── Login ── */}
+        <Route
+          path="/login"
+          element={
+            currentUser
+              ? <Navigate to={defaultRoute} replace />
+              : <Login />
+          }
+        />
+        {/* ── Paid Social Login ── */}
+        <Route
+          path="/paid/login"
+          element={<PaidSocialLogin />}
+        />
 
-          {/* ── Role Selector ── */}
-          {/* Allowed either when logged in, or mid-login with a pending
-            multi-role choice (Option B: no token issued yet). */}
-          <Route
-            path="/select-role"
-            element={
-              currentUser || sessionStorage.getItem("pendingAuth")
-                ? <OrganicSocialRoleSelector />
-                : <Navigate to="/login" replace />
-            }
-          />
-
-          {/* ── QM Dashboard ── */}
-          <Route
-            path="/qm"
+        {/* ── New Paid Social QM Dashboard Route ── */}
+        {/* <Route
+            path="/paid/qm"
             element={
               <ProtectedRoute allowedRole="QM">
-                <DashboardLayout>
-                  <QMDashboard />
-                </DashboardLayout>
+                <PaidSocialQMDashboard />
               </ProtectedRoute>
             }
-          />
+          /> */}
 
-          {/* ── Agent Dashboard ── */}
-          <Route
-            path="/agent"
-            element={
-              <ProtectedRoute allowedRole="AGENT">
-                <DashboardLayout>
-                  <AgentDashboard />
-                </DashboardLayout>
-              </ProtectedRoute>
-            }
-          />
+        <Route
+          path="/paid/qm"
+          element={<PaidSocialQMDashboard />}
+        />
 
-          {/* ── QA Dashboard ── */}
-          <Route
-            path="/qa"
-            element={
-              <ProtectedRoute allowedRole="QA">
-                <DashboardLayout>
-                  <QADashboard />
-                </DashboardLayout>
-              </ProtectedRoute>
-            }
-          />
+        {/* ── Role Selector ── */}
+        {/* Allowed either when logged in, or mid-login with a pending
+            multi-role choice (Option B: no token issued yet). */}
+        <Route
+          path="/select-role"
+          element={
+            currentUser || sessionStorage.getItem("pendingAuth")
+              ? <OrganicSocialRoleSelector />
+              : <Navigate to="/login" replace />
+          }
+        />
 
-          {/* ── Active Agents ── */}
-          <Route
-            path="/agents"
-            element={
+        {/* ── QM Dashboard ── */}
+        <Route
+          path="/qm"
+          element={
+            <ProtectedRoute allowedRole="QM">
               <DashboardLayout>
-                <ActiveAgents />
+                <QMDashboard />
               </DashboardLayout>
-            }
-          />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* ── QA Checklist ── */}
-          <Route
-            path="/qa-checklist/:qaReviewId"
-            element={
+        {/* ── Agent Dashboard ── */}
+        <Route
+          path="/agent"
+          element={
+            <ProtectedRoute allowedRole="AGENT">
               <DashboardLayout>
-                <QAChecklistWrapper />
+                <AgentDashboard />
               </DashboardLayout>
-            }
-          />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* ── Agent Checklist ── */}
-          <Route
-            path="/agent-checklist/:qaReviewId"
-            element={
+        {/* ── QA Dashboard ── */}
+        <Route
+          path="/qa"
+          element={
+            <ProtectedRoute allowedRole="QA">
               <DashboardLayout>
-                <AgentChecklistWrapper />
+                <QADashboard />
               </DashboardLayout>
-            }
-          />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* ── Default / ── */}
-          <Route
-            path="/"
-            element={
-              currentUser
-                ? <Navigate to={defaultRoute} replace />
-                : <Navigate to="/login" replace />
-            }
-          />
+        {/* ── Active Agents ── */}
+        <Route
+          path="/agents"
+          element={
+            <DashboardLayout>
+              <ActiveAgents />
+            </DashboardLayout>
+          }
+        />
 
-          {/* ── Catch All ── */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+        {/* ── QA Checklist ── */}
+        <Route
+          path="/qa-checklist/:qaReviewId"
+          element={
+            <DashboardLayout>
+              <QAChecklistWrapper />
+            </DashboardLayout>
+          }
+        />
 
-        </Routes>
+        {/* ── Agent Checklist ── */}
+        <Route
+          path="/agent-checklist/:qaReviewId"
+          element={
+            <DashboardLayout>
+              <AgentChecklistWrapper />
+            </DashboardLayout>
+          }
+        />
+
+        {/* ── Default / ── */}
+        <Route
+          path="/"
+          element={
+            currentUser
+              ? <Navigate to={defaultRoute} replace />
+              : <Navigate to="/login" replace />
+          }
+        />
+
+        {/* ── Catch All ── */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+
+      </Routes>
     </div>
   );
 }
