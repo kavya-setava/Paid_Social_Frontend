@@ -1,0 +1,193 @@
+.table-wrapper {
+  background: #0d0d0d;
+  border: 1px solid #1e1e1e;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.qm-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+.qm-table th {
+  background-color: #121212;
+  color: #888888;
+  font-weight: 600;
+  padding: 14px 16px;
+  border-bottom: 1px solid #1e1e1e;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.qm-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #1a1a1a;
+  color: #cccccc;
+}
+
+.qm-table tbody tr:hover {
+  background-color: #141414;
+}
+
+.bold-text {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* High Contrast Dark Variant Status Badges */
+.status-tag.open { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
+.status-tag.progress { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2); }
+.status-tag.done { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+
+.table-loading, .no-data {
+  text-align: center;
+  padding: 40px;
+  color: #666666;
+  background-color: #0d0d0d;
+}
+
+/* Workflow status badges (RTT / In Progress / On Hold / Ready to QC / Rejected) */
+.status-tag.status-rtt { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.2); }
+.status-tag.status-in-progress { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2); }
+.status-tag.status-on-hold { background: rgba(107, 114, 128, 0.15); color: #9ca3af; border: 1px solid rgba(107, 114, 128, 0.2); }
+.status-tag.status-ready-qc { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.2); }
+.status-tag.status-in-qc { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.2); }
+.status-tag.status-rejected { background: rgba(220, 38, 38, 0.15); color: #f87171; border: 1px solid rgba(220, 38, 38, 0.2); }
+.status-tag.status-trafficked { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+
+.rejection-note {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #f87171;
+}
+
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease;
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.action-btn-primary {
+  background: #e50914;
+  color: #ffffff;
+}
+
+.action-btn-primary:hover:not(:disabled) {
+  background: #b20710;
+}
+
+.action-btn-secondary {
+  background: transparent;
+  color: #cccccc;
+  border: 1px solid #333333;
+}
+
+.action-btn-secondary:hover:not(:disabled) {
+  background: #1e1e1e;
+  border-color: #444444;
+}
+
+/* Status action dropdown (StatusActionCell) */
+.status-select {
+  border: 1px solid #333333;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 13px;
+  background-color: #141414;
+  color: #ffffff;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.status-select:hover {
+  border-color: #444444;
+}
+
+.status-select:focus {
+  outline: none;
+  border-color: #e50914;
+}
+
+.status-select option {
+  background-color: #141414;
+  color: #ffffff;
+}
+
+.action-note {
+  font-size: 12px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.qc-reject-group {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  min-width: 200px;
+}
+
+.rejection-input {
+  border: 1px solid #333333;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 13px;
+  background-color: #141414;
+  color: #ffffff;
+  resize: vertical;
+  min-height: 48px;
+  font-family: inherit;
+}
+
+.rejection-input:focus {
+  outline: none;
+  border-color: #e50914;
+}
+
+.inline-comment-input {
+  border: 1px solid #333333;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 13px;
+  background-color: #141414;
+  color: #ffffff;
+  resize: vertical;
+  min-height: 32px;
+  width: 100%;
+  min-width: 160px;
+  font-family: inherit;
+}
+
+.inline-comment-input:focus {
+  outline: none;
+  border-color: #e50914;
+}

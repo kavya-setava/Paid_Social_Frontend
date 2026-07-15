@@ -23,6 +23,7 @@ import ConfirmHost from "./components/ConfirmHost";
 import { AuthProvider, useAuth } from "./context/AuthContext.Provider";
 import { normalizeRole } from "./utils/role";
 import "./App.css";
+import PaidSocialAgentDashboard from './paidSocial/pages/agent/pages/Dashboard'
 
 // ✅ Helper to get correct route for a user
 function getDefaultRoute(user) {
@@ -116,6 +117,10 @@ function AppContent() {
         <Route
           path="/paid/qm"
           element={<PaidSocialQMDashboard />}
+        />
+  <Route
+          path="/paid/agent"
+          element={<PaidSocialAgentDashboard />}
         />
 
         {/* ── Role Selector ── */}
