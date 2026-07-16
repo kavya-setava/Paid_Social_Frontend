@@ -41,8 +41,8 @@ const Header = ({ title = 'Ticket Management System', user = {}, onLogout, notif
       </div>
 
       <div className="header-right">
-        <button 
-          className="icon-button notification-btn" 
+        <button
+          className="icon-button notification-btn"
           aria-label="View notifications"
         >
           <Bell size={18} />
