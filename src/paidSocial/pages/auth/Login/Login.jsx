@@ -8,6 +8,7 @@ const Login = () => {
     // State variables
     const [isLoading, setIsLoading] = useState(false);
     const [apiError, setApiError] = useState('');
+    const [testRole, setTestRole] = useState('Queue Manager'); // Temporary testing state
 
     // Auto-redirect if token already exists (Requirement: Session check)
     useEffect(() => {
@@ -22,7 +23,7 @@ const Login = () => {
     const redirectUserByRole = (role) => {
         switch (role) {
             case 'Queue Manager':
-                navigate('/qm-dashboard');
+                navigate('/paid/qm');
                 break;
             case 'Agent':
                 navigate('/agent-dashboard');
@@ -35,29 +36,46 @@ const Login = () => {
         }
     };
 
-    // Handle Automatic Federated / Contextual Authentication
+   // Handle Automatic Federated / Contextual Authentication
     const handleAutoSignIn = async (e) => {
         e.preventDefault();
         setApiError('');
         setIsLoading(true);
 
+        // FEATURE FLAG: Set to true for dropdown testing, set to false when backend API is ready
+        const useMockData = true; 
+
         try {
-            // Simulating secure identity authentication
-            await new Promise((resolve) => setTimeout(resolve, 1500));
+            if (useMockData) {
+                // 1. TESTING MODE: Route using the dropdown selection
+                await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulating quick delay
 
-            // Mocking a successful session resolution. 
-            // Replace this with your actual single-sign-on (SSO) or profile resolution logic.
-            const mockResolvedRole = 'Queue Manager';
+                if (testRole) {
+                    localStorage.setItem('authToken', 'mock-jwt-token-xyz');
+                    localStorage.setItem('userRole', testRole);
+                    redirectUserByRole(testRole);
+                } else {
+                    setApiError('Unable to identify your account role. Please contact your system administrator.');
+                }
 
-            if (mockResolvedRole) {
-                // Storing session data
-                localStorage.setItem('authToken', 'mock-jwt-token-xyz');
-                localStorage.setItem('userRole', mockResolvedRole);
-
-                // Dynamic navigation routing based on the resolved role
-                redirectUserByRole(mockResolvedRole);
             } else {
-                setApiError('Unable to identify your account role. Please contact your system administrator.');
+                // 2. PRODUCTION MODE: Integrate with the backend API
+                const response = await fetch('https://api.paidsocial.internal/auth/session-resolve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) throw new Error('Backend authentication response failed.');
+
+                const data = await response.json(); 
+                
+                if (data.role && data.token) {
+                    localStorage.setItem('authToken', data.token);
+                    localStorage.setItem('userRole', data.role);
+                    redirectUserByRole(data.role);
+                } else {
+                    setApiError('Unable to identify your account role. Please contact your system administrator.');
+                }
             }
         } catch (error) {
             setApiError('Authentication failed. The identity provider is unreachable.');
@@ -86,6 +104,33 @@ const Login = () => {
                 {apiError && <div className="error-alert-banner">{apiError}</div>}
 
                 <form onSubmit={handleAutoSignIn}>
+                    {/* Temporary Test Dropdown UI (Will be hidden/removed after API Integration) */}
+                    <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label htmlFor="test-role-select" style={{ fontSize: '13px', color: '#8c8c8c', textAlign: 'left' }}>
+                            Select Test Profile Role:
+                        </label>
+                        <select 
+                            id="test-role-select"
+                            value={testRole} 
+                            onChange={(e) => setTestRole(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '14px',
+                                backgroundColor: '#333333',
+                                color: '#ffffff',
+                                border: 'none',
+                                borderRadius: '4px',
+                                fontSize: '15px',
+                                outline: 'none',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            <option value="Queue Manager">Queue Manager</option>
+                            <option value="Agent">Agent</option>
+                            <option value="Quality Checker">Quality Checker</option>
+                        </select>
+                    </div>
+
                     {/* Submit Action Button */}
                     <button type="submit" className="login-btn" disabled={isLoading}>
                         {isLoading ? <span className="spinner"></span> : 'Sign In'}
