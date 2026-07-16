@@ -1,0 +1,271 @@
+.table-wrapper {
+    background: #0d0d0d;
+    border: 1px solid #1e1e1e;
+    border-radius: 6px;
+    overflow-x: auto;
+}
+
+.qc-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px;
+    min-width: 1200px;
+}
+
+.qc-table th {
+    background-color: #121212;
+    color: #888888;
+    font-weight: 600;
+    padding: 12px 14px;
+    border-bottom: 1px solid #1e1e1e;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.qc-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #1a1a1a;
+    color: #cccccc;
+    font-size: 13px;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.qc-table tbody tr:hover {
+    background-color: #141414;
+}
+
+.bold-text {
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.status-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+
+/* Status Colors - Matching Status Cards */
+.status-all {
+    background: rgba(100, 116, 139, 0.15);
+    color: #94a3b8;
+    border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.status-unassigned {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.status-ready-to-qc {
+    background: rgba(139, 92, 246, 0.15);
+    color: #a78bfa;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.status-in-qc {
+    background: rgba(236, 72, 153, 0.15);
+    color: #f472b6;
+    border: 1px solid rgba(236, 72, 153, 0.2);
+}
+
+.status-rejected {
+    background: rgba(220, 38, 38, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.status-trafficked {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.status-default {
+    background: rgba(100, 116, 139, 0.1);
+    color: #94a3b8;
+    border: 1px solid rgba(100, 116, 139, 0.15);
+}
+
+/* QC'er Dropdown Styles */
+.qc-er-dropdown,
+.status-dropdown {
+    background-color: #1a1a1a;
+    color: #cccccc;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 120px;
+}
+
+.qc-er-dropdown:hover,
+.status-dropdown:hover {
+    border-color: #555555;
+    background-color: #222222;
+}
+
+.qc-er-dropdown:focus,
+.status-dropdown:focus {
+    outline: none;
+    border-color: #e50914;
+    box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2);
+}
+
+.qc-er-dropdown option,
+.status-dropdown option {
+    background-color: #1a1a1a;
+    color: #cccccc;
+}
+
+/* Timer Cell Styles */
+.timer-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.timer-display {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: #1a1a1a;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid #333333;
+    min-width: 70px;
+    display: inline-block;
+    text-align: center;
+}
+
+.timer-status {
+    font-size: 12px;
+}
+
+.timer-status.running {
+    color: #10b981;
+}
+
+.timer-status.paused {
+    color: #f59e0b;
+}
+
+/* Action Cell Styles */
+.action-cell {
+    min-width: 100px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.action-btn {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    transform: scale(1.05);
+}
+
+.pause-btn {
+    background-color: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.pause-btn:hover {
+    background-color: rgba(245, 158, 11, 0.25);
+}
+
+.resume-btn {
+    background-color: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.resume-btn:hover {
+    background-color: rgba(16, 185, 129, 0.25);
+}
+
+/* QC Comments Input */
+.qc-comments-input {
+    background-color: #1a1a1a;
+    color: #cccccc;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 13px;
+    width: 100%;
+    min-width: 120px;
+    transition: all 0.2s ease;
+}
+
+.qc-comments-input:hover {
+    border-color: #555555;
+}
+
+.qc-comments-input:focus {
+    outline: none;
+    border-color: #e50914;
+    box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2);
+}
+
+.qc-comments-input::placeholder {
+    color: #666666;
+}
+
+.table-loading,
+.no-data {
+    text-align: center;
+    padding: 40px;
+    color: #666666;
+    background-color: #0d0d0d;
+}
+
+/* Make table scrollable horizontally */
+.table-wrapper {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+/* Style scrollbar for dark theme */
+.table-wrapper::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+    background: #0d0d0d;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: #333333;
+    border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #444444;
+}

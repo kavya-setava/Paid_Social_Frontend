@@ -13,7 +13,8 @@ import AgentDashboard from "./components/OrganicSocialAgentDashboard";
 import QADashboard from "./components/OrganicSocialQADashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardLayout from "./components/DashboardLayout";
-import PaidSocialQMDashboard from "./paidSocial/pages/qm/pages/Dashboard"; // ✅ Added new Paid Social dashboard 
+import PaidSocialQMDashboard from "./paidSocial/pages/qm/pages/Dashboard";
+import PaidSocialQCDashboard from "./paidSocial/pages/qc/pages/Dashboard"; // ✅ Import QC Dashboard
 import ActiveAgents from "./components/ActiveAgents";
 import QAChecklistWrapper from "./components/QAChecklistWrapper";
 import AgentChecklistWrapper from "./components/AgentlistWrapper";
@@ -37,6 +38,7 @@ function getDefaultRoute(user) {
     "QM": "/qm",
     "AGENT": "/agent",
     "QA": "/qa",
+    "QC": "/qc", // ✅ Added QC route
   };
 
   return ROLE_ROUTES[role] || (roles.length > 1 ? "/select-role" : "/login");
@@ -104,18 +106,15 @@ function AppContent() {
         />
 
         {/* ── New Paid Social QM Dashboard Route ── */}
-        {/* <Route
-            path="/paid/qm"
-            element={
-              <ProtectedRoute allowedRole="QM">
-                <PaidSocialQMDashboard />
-              </ProtectedRoute>
-            }
-          /> */}
-
         <Route
           path="/paid/qm"
           element={<PaidSocialQMDashboard />}
+        />
+
+        {/* ── New Paid Social QC Dashboard Route ── */}
+        <Route
+          path="/paid/qc"
+          element={<PaidSocialQCDashboard />}
         />
 
         {/* ── Role Selector ── */}
@@ -137,6 +136,18 @@ function AppContent() {
             <ProtectedRoute allowedRole="QM">
               <DashboardLayout>
                 <QMDashboard />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ── QC Dashboard ── */}
+        <Route
+          path="/qc"
+          element={
+            <ProtectedRoute allowedRole="QC">
+              <DashboardLayout>
+                <PaidSocialQCDashboard />
               </DashboardLayout>
             </ProtectedRoute>
           }

@@ -1,0 +1,90 @@
+.qc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 65px;
+    padding: 0 24px;
+    background-color: #0d0d0d;
+    border-bottom: 1px solid #222222;
+}
+
+.header-left,
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.qc-logo {
+    font-weight: 900;
+    font-size: 20px;
+    color: #e50914;
+    /* Vibrant brand red from login screen */
+    letter-spacing: 0.5px;
+}
+
+.header-divider {
+    width: 1px;
+    height: 20px;
+    background-color: #333333;
+}
+
+.dashboard-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: #aaaaaa;
+    margin: 0;
+}
+
+.icon-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #888888;
+    position: relative;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.icon-button:hover {
+    background-color: #1a1a1a;
+    color: #ffffff;
+}
+
+.notification-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background-color: #e50914;
+    color: white;
+    font-size: 9px;
+    font-weight: bold;
+    padding: 2px 5px;
+    border-radius: 50%;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background-color: #141414;
+    border: 1px solid #222222;
+    border-radius: 6px;
+}
+
+.profile-avatar {
+    color: #aaaaaa;
+}
+
+.profile-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #dddddd;
+}
+
+.logout-btn:hover {
+    color: #e50914;
+    background-color: rgba(229, 9, 20, 0.1);
+}

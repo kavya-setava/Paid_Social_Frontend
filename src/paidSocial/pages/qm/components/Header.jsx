@@ -15,8 +15,8 @@ const Header = ({ title = 'Ticket Management System', user = {}, onLogout, notif
       </div>
 
       <div className="header-right">
-        <button 
-          className="icon-button notification-btn" 
+        <button
+          className="icon-button notification-btn"
           aria-label="View notifications"
         >
           <Bell size={18} />
@@ -30,9 +30,9 @@ const Header = ({ title = 'Ticket Management System', user = {}, onLogout, notif
           <span className="profile-name">{user.name || 'User'}</span>
         </div>
 
-        <button 
-          className="icon-button logout-btn" 
-          onClick={onLogout} 
+        <button
+          className="icon-button logout-btn"
+          onClick={onLogout}
           aria-label="Log out"
         >
           <LogOut size={18} />
