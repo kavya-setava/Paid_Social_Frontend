@@ -26,10 +26,10 @@ const Login = () => {
                 navigate('/paid/qm');
                 break;
             case 'Agent':
-                navigate('/agent-dashboard');
+                navigate('/paid/agent');
                 break;
             case 'Quality Checker':
-                navigate('/qc-dashboard');
+                navigate('/paid/qc');
                 break;
             default:
                 navigate('/');

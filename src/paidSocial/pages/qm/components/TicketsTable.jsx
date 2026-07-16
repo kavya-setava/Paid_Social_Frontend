@@ -93,7 +93,6 @@ const COLUMN_MAP = {
         { label: 'AD Flight Start Date and time', key: 'adFlightStart' },
         { label: 'AD Flight End Date and time', key: 'adFlightEnd' },
         { label: 'Operator', key: 'operator' },
-        { label: 'Operator Status', key: 'operatorStatus' },
         { label: 'Task Assigned Time', key: 'taskAssignedTime' },
         { label: 'Publish Date (Pst)', key: 'publishDate' },
         { label: 'Launching Prioritization', key: 'launchingPrioritization' },
@@ -116,7 +115,6 @@ const COLUMN_MAP = {
         { label: 'AD Flight Start Date and time', key: 'adFlightStart' },
         { label: 'AD Flight End Date and time', key: 'adFlightEnd' },
         { label: 'Operator', key: 'operator' },
-        { label: 'Operator Status', key: 'operatorStatus' },
         { label: 'Task Assigned Time', key: 'taskAssignedTime' },
         { label: 'Publish Date (Pst)', key: 'publishDate' },
         { label: 'Launching Prioritization', key: 'launchingPrioritization' },
@@ -196,7 +194,6 @@ const COLUMN_MAP = {
         { label: 'Trafficker Comments', key: 'traffickerComments' },
         { label: 'QC Thread', key: 'qcThread' },
         { label: 'QC\'er', key: 'qcer' },
-        { label: 'QC Status', key: 'qcStatus' },
         { label: 'QC Comments', key: 'qcComments' }
     ],
     trafficked: [
@@ -221,8 +218,7 @@ const COLUMN_MAP = {
         { label: 'Socialite Notes', key: 'socialiteNotes' },
         { label: 'Trafficker Comments', key: 'traffickerComments' },
         { label: 'QC Thread', key: 'qcThread' },
-        { label: 'QC\'er', key: 'qcer' },
-        { label: 'QC Status', key: 'qcStatus' }
+        { label: 'QC\'er', key: 'qcer' }
     ],
     rework: [
         { label: 'Task Received Time', key: 'taskReceivedTime' },
@@ -238,9 +234,7 @@ const COLUMN_MAP = {
         { label: 'Region', key: 'region' },
         { label: 'AD Flight Start Date and time', key: 'adFlightStart' },
         { label: 'AD Flight End Date and time', key: 'adFlightEnd' },
-        { label: 'Operator1', key: 'operator1' }, // Operator dropdown for assignment
-        { label: 'Operator2', key: 'operator2' }, // Operator dropdown for assignment
-        { label: 'Operator Status', key: 'operatorStatus' },
+        { label: 'Operator', key: 'operator' }, // Main active assignment tracking column
         { label: 'Task Assigned Time', key: 'taskAssignedTime' },
         { label: 'Publish Date (Pst)', key: 'publishDate' },
         { label: 'Launching Prioritization', key: 'launchingPrioritization' },
@@ -249,7 +243,6 @@ const COLUMN_MAP = {
         { label: 'Trafficker Comments', key: 'traffickerComments' },
         { label: 'QC Thread', key: 'qcThread' },
         { label: 'QC\'er', key: 'qcer' },
-        { label: 'QC Status', key: 'qcStatus' },
         { label: 'QC Comments', key: 'qcComments' }
     ]
 };
@@ -259,8 +252,17 @@ const TicketsTable = ({
     loading = false,
     activeStatus = 'all',
     operatorsList = ['Jane Doe', 'John Smith', 'Sarah Jenkins', 'Alex Smith'], // Placeholder names; pass via props from parent later
-    onOperatorChange = () => { }
+    onOperatorChange = () => { },
+    onAutoAssign = () => { } // New prop callback for handling batch assignments
 }) => {
+    // Keep track of pending operator selections before submitting
+    const [draftAssignments, setDraftAssignments] = React.useState({});
+
+    // Reset draft assignments when changing tabs to prevent stale states
+    React.useEffect(() => {
+        setDraftAssignments({});
+    }, [activeStatus]);
+
     if (loading) {
         return <div className="table-loading">Loading data from backend...</div>;
     }
@@ -268,8 +270,49 @@ const TicketsTable = ({
     // Fallback cleanly to 'all' headers if the dynamic key isn't registered
     const currentColumns = COLUMN_MAP[activeStatus] || COLUMN_MAP.all;
 
+    // Handles the selection of an operator locally
+    const handleDraftOperatorChange = (ticketId, operatorValue) => {
+        setDraftAssignments(prev => ({
+            ...prev,
+            [ticketId]: operatorValue === '-' ? undefined : operatorValue
+        }));
+        
+        // Keeps original single-change prop firing if needed elsewhere
+        onOperatorChange(ticketId, operatorValue);
+    };
+
+    // Filters and sends only valid draft assignments to the parent component
+    const handleAutoAssignClick = () => {
+        const assignmentsToSubmit = {};
+        Object.entries(draftAssignments).forEach(([id, operator]) => {
+            if (operator && operator !== '-') {
+                assignmentsToSubmit[id] = operator;
+            }
+        });
+
+        if (Object.keys(assignmentsToSubmit).length > 0) {
+            onAutoAssign(assignmentsToSubmit);
+            setDraftAssignments({}); // Clear drafts after submitting
+        }
+    };
+
+    const hasDrafts = Object.values(draftAssignments).some(val => val && val !== '-');
+
     return (
         <div className="table-wrapper">
+            {activeStatus === 'rttUnassigned' && (
+                <div className="table-actions-sticky-container">
+                    <div className="table-actions">
+                        <button 
+                            className="auto-assign-btn"
+                            onClick={handleAutoAssignClick}
+                            disabled={!hasDrafts}
+                        >
+                            Auto Assign
+                        </button>
+                    </div>
+                </div>
+            )}
             <table className="qm-table">
                 <thead>
                     <tr>
@@ -308,18 +351,52 @@ const TicketsTable = ({
 
                                     // Render Operator Dropdown specifically for RTT Unassigned view
                                     if (col.key === 'operator' && activeStatus === 'rttUnassigned') {
+                                        const draftValue = draftAssignments[ticket.id] !== undefined 
+                                            ? draftAssignments[ticket.id] 
+                                            : (cellValue || '-');
+
                                         return (
                                             <td key={cIdx}>
                                                 <select
                                                     className="operator-dropdown"
-                                                    value={cellValue || '-'}
-                                                    onChange={(e) => onOperatorChange(ticket.id, e.target.value)}
+                                                    value={draftValue}
+                                                    onChange={(e) => handleDraftOperatorChange(ticket.id, e.target.value)}
                                                 >
                                                     <option value="-">Select Operator</option>
                                                     {operatorsList.map((name, uIdx) => (
                                                         <option key={uIdx} value={name}>{name}</option>
                                                     ))}
                                                 </select>
+                                            </td>
+                                        );
+                                    }
+
+                                    // Custom interactive layout for Operator column with audit history tooltip
+                                    if (col.key === 'operator') {
+                                        const historyData = ticket.history || [];
+                                        return (
+                                            <td key={cIdx} className="operator-cell-interactive">
+                                                <div className="operator-history-tooltip-wrapper">
+                                                    <span className="current-operator-text">
+                                                        {cellValue !== undefined && cellValue !== null ? String(cellValue) : '-'}
+                                                    </span>
+                                                    <div className="history-tooltip-box">
+                                                        <div className="tooltip-header">Assignment History</div>
+                                                        {historyData.length === 0 ? (
+                                                            <div className="tooltip-empty-state">No previous assignment history.</div>
+                                                        ) : (
+                                                            <ul className="tooltip-history-list">
+                                                                {historyData.map((item, hIdx) => (
+                                                                    <li key={hIdx} className="tooltip-history-item">
+                                                                        <strong>{item.operator || 'Unknown'}</strong> 
+                                                                        <span className="history-action"> ({item.action || 'Assigned'})</span>
+                                                                        {item.timestamp && <span className="history-time"> - {item.timestamp}</span>}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </td>
                                         );
                                     }
@@ -345,6 +422,7 @@ TicketsTable.propTypes = {
     activeStatus: PropTypes.string,
     operatorsList: PropTypes.arrayOf(PropTypes.string),
     onOperatorChange: PropTypes.func,
+    onAutoAssign: PropTypes.func,
 };
 
 export default TicketsTable;

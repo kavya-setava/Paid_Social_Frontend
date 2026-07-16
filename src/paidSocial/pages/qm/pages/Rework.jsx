@@ -14,10 +14,8 @@ const REWORK_COLUMNS = [
   { label: 'Platform', key: 'platform' },
   { label: 'Region', key: 'region' },
   { label: 'AD Flight Start Date and time', key: 'adFlightStart' },
-  { label: 'AD Flight End Date and time', key: 'adFlightEnd' },
-  { label: 'Original Operator', key: 'originalOperator' }, // Read-only
-  { label: 'Assign Operator', key: 'operator' }, // Dropdown
-  { label: 'Operator Status', key: 'operatorStatus' },
+  { label: 'AD Flight End Date and time', key: 'adFlightEnd' },// Read-only
+  { label: 'Operator', key: 'operator' }, // Dropdown
   { label: 'Task Assigned Time', key: 'taskAssignedTime' },
   { label: 'Publish Date (Pst)', key: 'publishDate' },
   { label: 'Launching Prioritization', key: 'launchingPrioritization' },
@@ -26,7 +24,6 @@ const REWORK_COLUMNS = [
   { label: 'Trafficker Comments', key: 'traffickerComments' },
   { label: 'QC Thread', key: 'qcThread' },
   { label: 'QC\'er', key: 'qcer' },
-  { label: 'QC Status', key: 'qcStatus' },
   { label: 'QC Comments', key: 'qcComments' },
   { label: 'Rework Reason', key: 'reworkReason' }
 ];
@@ -37,6 +34,7 @@ const OPERATOR_OPTIONS = ['Unassigned', 'Alex Smith', 'Jane Doe', 'John Rogers',
 const Rework = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeHistoryTaskId, setActiveHistoryTaskId] = useState(null);
 
   // Simulating API fetch
   useEffect(() => {
@@ -58,18 +56,15 @@ const Rework = () => {
           region: 'NAMER',
           adFlightStart: '2026-07-20 00:00',
           adFlightEnd: '2026-08-20 23:59',
-          originalOperator: 'Alex Smith',
           operator: 'Jane Doe',
-          operatorStatus: 'assigned', // used for status styling demo
           taskAssignedTime: '2026-07-16 11:15',
           publishDate: '2026-07-20',
           launchingPrioritization: 'High',
-          taskStatus: 'inprogress', 
+          taskStatus: 'inprogress',
           socialiteNotes: 'Needs copy update.',
           traffickerComments: 'Updated text layout.',
           qcThread: 'QC-9843',
           qcer: 'Sarah Jenkins',
-          qcStatus: 'rejected',
           qcComments: 'Fix typography alignment.',
           reworkReason: 'Text overlap on mobile view'
         }
@@ -93,7 +88,7 @@ const Rework = () => {
   const getStatusClass = (status) => {
     if (!status) return 'default';
     const cleanStatus = status.toLowerCase().replace(/\s+/g, '');
-    
+
     // Whitelist matches to your CSS definition
     const validClasses = ['open', 'rttunassigned', 'progress', 'rttassigned', 'inprogress', 'onhold', 'readytoqc', 'inqc', 'rejected', 'done', 'trafficked'];
     return validClasses.includes(cleanStatus) ? cleanStatus : 'default';
@@ -102,23 +97,65 @@ const Rework = () => {
   const renderCellContent = (task, column) => {
     const val = task[column.key];
 
-    // 1. Assign Operator dropdown logic
+    // 1. Assign Operator dropdown logic with interactive click history popover
     if (column.key === 'operator') {
+      const historyData = task.history || [];
+      const isHistoryOpen = activeHistoryTaskId === task.id;
+
       return (
-        <select
-          className="operator-dropdown"
-          value={val || ''}
-          onChange={(e) => handleOperatorChange(task.id, e.target.value)}
-        >
-          {OPERATOR_OPTIONS.map((opt) => (
-            <option key={opt} value={opt}>{opt}</option>
-          ))}
-        </select>
+        <div className="operator-cell-container">
+          <div className="operator-interactive-row">
+            <select
+              className="operator-dropdown"
+              value={val || ''}
+              onChange={(e) => handleOperatorChange(task.id, e.target.value)}
+            >
+              {OPERATOR_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className={`history-trigger-btn ${isHistoryOpen ? 'active' : ''}`}
+              title="View Assignment History"
+              onClick={() => setActiveHistoryTaskId(isHistoryOpen ? null : task.id)}
+            >
+              <span className="info-icon-graphic">ℹ</span>
+            </button>
+          </div>
+
+          {isHistoryOpen && (
+            <div className="history-popover-card">
+              <div className="popover-header">
+                <span>Assignment History</span>
+                <button
+                  className="popover-close-btn"
+                  onClick={() => setActiveHistoryTaskId(null)}
+                >
+                  &times;
+                </button>
+              </div>
+              {historyData.length === 0 ? (
+                <div className="popover-empty-state">No previous assignment history.</div>
+              ) : (
+                <ul className="popover-history-list">
+                  {historyData.map((item, hIdx) => (
+                    <li key={hIdx} className="popover-history-item">
+                      <strong>{item.operator || 'Unknown'}</strong>
+                      <span className="popover-action"> ({item.action || 'Assigned'})</span>
+                      {item.timestamp && <span className="popover-time"><br />{item.timestamp}</span>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </div>
       );
     }
 
     // 2. Status styling applied to fields containing status labels
-    if (column.key === 'taskStatus' || column.key === 'qcStatus' || column.key === 'operatorStatus') {
+    if (column.key === 'taskStatus') {
       return (
         <span className={`status-tag ${getStatusClass(val)}`}>
           {val ? val.toUpperCase() : 'N/A'}
@@ -137,7 +174,7 @@ const Rework = () => {
   return (
     <div className="rework-container">
       <h2 className="rework-title">Rework Queue</h2>
-      
+
       <div className="table-wrapper">
         <table className="qm-table">
           <thead>
@@ -179,3 +216,4 @@ const Rework = () => {
 };
 
 export default Rework;
+

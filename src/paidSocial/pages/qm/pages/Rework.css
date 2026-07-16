@@ -132,3 +132,138 @@
   color: #cccccc;
   padding: 8px;
 }
+
+/* Clickable Operator Assignment History Card Layout - Dark Theme Optimized */
+.operator-cell-container {
+  position: relative;
+  display: inline-block;
+  min-width: 160px;
+}
+
+.operator-interactive-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.history-trigger-btn {
+  background-color: #121212;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 5px 8px;
+  font-size: 13px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  height: 29px; /* Matches standard input padding heights */
+}
+
+.info-icon-graphic {
+  color: #888888;
+  font-weight: bold;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.history-trigger-btn:hover {
+  background-color: #1a1a1a;
+  border-color: #3b82f6;
+}
+
+.history-trigger-btn:hover .info-icon-graphic {
+  color: #60a5fa;
+  transform: scale(1.1);
+}
+
+.history-trigger-btn.active {
+  background-color: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+}
+
+.history-trigger-btn.active .info-icon-graphic {
+  color: #60a5fa;
+}
+
+.history-popover-card {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 8px;
+  background-color: #161616;
+  color: #cccccc;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.5);
+  width: 260px;
+  z-index: 100;
+  text-align: left;
+  font-size: 12px;
+  padding: 12px;
+}
+
+.popover-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  border-bottom: 1px solid #222222;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+  color: #ffffff;
+  letter-spacing: 0.3px;
+}
+
+.popover-close-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #888888;
+  line-height: 1;
+  padding: 0;
+}
+
+.popover-close-btn:hover {
+  color: #f87171;
+}
+
+.popover-empty-state {
+  color: #666666;
+  font-style: italic;
+  padding: 6px 0;
+}
+
+.popover-history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.popover-history-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #222222;
+}
+
+.popover-history-item:last-child {
+  border-bottom: none;
+}
+
+.popover-history-item strong {
+  color: #ffffff;
+}
+
+.popover-action {
+  color: #60a5fa; /* Tinted light blue for actions */
+  font-weight: 500;
+}
+
+.popover-time {
+  color: #666666;
+  font-size: 11px;
+  display: inline-block;
+  margin-top: 2px;
+}

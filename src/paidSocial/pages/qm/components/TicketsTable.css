@@ -115,3 +115,133 @@
   color: #cccccc;
   padding: 8px;
 }
+
+/* Table Action Header and Auto-Assign Button */
+.table-actions-sticky-container {
+  background-color: #121212;
+  border-bottom: 1px solid #1e1e1e;
+  padding: 12px 16px;
+  /* Ensures this header does not scroll horizontally with the table */
+  position: sticky;
+  left: 0;
+  z-index: 5;
+}
+
+.table-actions {
+  display: flex;
+  justify-content: flex-start; /* Aligns the button to the left corner */
+  width: max-content;
+}
+
+.auto-assign-btn {
+  background-color: #3b82f6;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.auto-assign-btn:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.auto-assign-btn:disabled {
+  background-color: #1e293b;
+  color: #64748b;
+  cursor: not-allowed;
+  border: 1px solid #334155;
+}
+
+/* Operator Audit Tooltip Styles */
+.operator-cell-interactive {
+    position: relative;
+    cursor: help;
+}
+
+.operator-history-tooltip-wrapper {
+    display: inline-block;
+    position: relative;
+}
+
+.current-operator-text {
+    border-bottom: 1px dashed #888;
+    padding-bottom: 1px;
+}
+
+.history-tooltip-box {
+    display: none;
+    position: absolute;
+    bottom: 125%; /* Positions the box directly above the text line */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #2e3440;
+    color: #eceff4;
+    padding: 12px;
+    border-radius: 6px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+    width: 260px;
+    z-index: 100;
+    text-align: left;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* Tooltip dynamic arrow element */
+.history-tooltip-box::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #2e3440 transparent transparent transparent;
+}
+
+/* Triggers visible transition state natively on hover */
+.operator-history-tooltip-wrapper:hover .history-tooltip-box {
+    display: block;
+}
+
+.tooltip-header {
+    font-weight: bold;
+    border-bottom: 1px solid #4c566a;
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+    color: #88c0d0;
+}
+
+.tooltip-empty-state {
+    color: #d8dee9;
+    font-style: italic;
+}
+
+.tooltip-history-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.tooltip-history-item {
+    padding: 4px 0;
+    border-bottom: 1px solid #3b4252;
+}
+
+.tooltip-history-item:last-child {
+    border-bottom: none;
+}
+
+.history-action {
+    color: #a3be8c;
+}
+
+.history-time {
+    color: #e5e9f0;
+    font-size: 11px;
+}
