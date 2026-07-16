@@ -18,7 +18,13 @@ const ReWork = () => {
     setTickets((prev) =>
       prev.map((t) =>
         t.id === ticketId
-          ? { ...t, status: newStatus, updatedAt: timestamp() }
+          ? {
+              ...t,
+              status: newStatus,
+              inProgressStartedAt:
+                newStatus === STATUS.IN_PROGRESS ? new Date().toISOString() : t.inProgressStartedAt,
+              updatedAt: timestamp(),
+            }
           : t
       )
     );
@@ -34,7 +40,7 @@ const ReWork = () => {
     );
   };
 
-  const reworkTickets = tickets.filter((t) => t.status === STATUS.REJECTED);
+  const reworkTickets = tickets.filter((t) => t.status === STATUS.REWORK);
 
   return (
     <div className="tickets-page">

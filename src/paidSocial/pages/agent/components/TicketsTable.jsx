@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import StatusActionCell from './StatusActionCell';
 import { STATUS, STATUS_META, OPERATORS } from './mockTickets';
@@ -40,6 +40,17 @@ const TAIL_COLUMN_DEFS = {
 
 const FULL_TAIL = ['socialiteNotes', 'traffickerComments', 'qcThread', 'qcer', 'qcStatus', 'qcComment'];
 
+// Formats ms-since-epoch elapsed time as HH:MM:SS for the in-progress timer column.
+const formatElapsed = (startIso, now) => {
+  const start = new Date(startIso).getTime();
+  if (Number.isNaN(start)) return '—';
+  const diffSeconds = Math.max(0, Math.floor((now - start) / 1000));
+  const hrs = String(Math.floor(diffSeconds / 3600)).padStart(2, '0');
+  const mins = String(Math.floor((diffSeconds % 3600) / 60)).padStart(2, '0');
+  const secs = String(diffSeconds % 60).padStart(2, '0');
+  return `${hrs}:${mins}:${secs}`;
+};
+
 // Per-tab behavior: which trailing columns show, whether Task Status is a
 // pill or an editable dropdown, whether the Actions column appears (and
 // where), and whether Trafficker Comments is an editable input.
@@ -52,17 +63,18 @@ const TAB_CONFIG = {
     actions: 'pause-resume',
     actionsPosition: 'afterStatus',
     traffickerCommentsEditable: true,
+    showTimer: true,
   },
   onHold: { tail: ['socialiteNotes', 'traffickerComments', 'qcThread'], statusMode: 'pill', actions: 'none' },
   readyToQc: { tail: ['socialiteNotes', 'traffickerComments', 'qcThread', 'qcer', 'qcStatus'], statusMode: 'pill', actions: 'none' },
   inQc: { tail: ['socialiteNotes', 'traffickerComments', 'qcThread', 'qcer', 'qcStatus'], statusMode: 'pill', actions: 'none' },
   rejected: { tail: FULL_TAIL, statusMode: 'pill', actions: 'none' },
   trafficked: { tail: FULL_TAIL, statusMode: 'pill', actions: 'none' },
-  rework: { tail: FULL_TAIL, statusMode: 'pill', actions: 'rework', actionsPosition: 'end' },
+  rework: { tail: FULL_TAIL, statusMode: 'dropdown-rework', actions: 'none' },
 };
 
 // Operator cell is an editable picker only on these tabs; plain text elsewhere.
-const OPERATOR_EDITABLE_TABS = ['all', 'rttAssigned'];
+const OPERATOR_EDITABLE_TABS = ['all', 'rttAssigned', 'rework'];
 
 const TicketsTable = ({
   tickets = [],
@@ -72,11 +84,21 @@ const TicketsTable = ({
   onOperatorChange,
   onTraffickerCommentChange,
 }) => {
+  const config = TAB_CONFIG[activeStatus] || TAB_CONFIG.all;
+  const showTimerColumn = !!config.showTimer;
+
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!showTimerColumn) return undefined;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [showTimerColumn]);
+
   if (loading) {
     return <div className="table-loading">Loading data from backend...</div>;
   }
 
-  const config = TAB_CONFIG[activeStatus] || TAB_CONFIG.all;
   const operatorEditable = OPERATOR_EDITABLE_TABS.includes(activeStatus);
   const showActions = config.actions !== 'none';
   const actionsAfterStatus = showActions && config.actionsPosition === 'afterStatus';
@@ -84,7 +106,14 @@ const TicketsTable = ({
   const tailColumns = config.tail.map((key) => TAIL_COLUMN_DEFS[key]);
 
   const columnCount =
-    2 + BASE_COLUMNS.length + 1 + MID_COLUMNS.length + 1 + (showActions ? 1 : 0) + tailColumns.length;
+    2 + BASE_COLUMNS.length + 1 + MID_COLUMNS.length + 1 + (showTimerColumn ? 1 : 0) + (showActions ? 1 : 0) + tailColumns.length;
+
+  const renderTimer = (ticket) => {
+    if (ticket.status !== STATUS.IN_PROGRESS || !ticket.inProgressStartedAt) {
+      return '—';
+    }
+    return formatElapsed(ticket.inProgressStartedAt, now);
+  };
 
   const renderTaskStatus = (ticket) => {
     const meta = STATUS_META[ticket.status] || {};
@@ -98,6 +127,20 @@ const TicketsTable = ({
         >
           <option value={STATUS.RTT}>RTT</option>
           <option value={STATUS.IN_PROGRESS}>In Progress</option>
+        </select>
+      );
+    }
+
+    if (config.statusMode === 'dropdown-rework') {
+      return (
+        <select
+          className="status-select"
+          value={ticket.status}
+          onChange={(e) => onStatusChange(ticket.id, e.target.value)}
+        >
+          <option value={STATUS.IN_PROGRESS}>In Progress</option>
+          <option value={STATUS.RTT}>RTT</option>
+          <option value={STATUS.ON_HOLD}>On Hold</option>
         </select>
       );
     }
@@ -138,6 +181,7 @@ const TicketsTable = ({
               <th key={col.key}>{col.label}</th>
             ))}
             <th>Task Status</th>
+            {showTimerColumn && <th>Timer</th>}
             {actionsAfterStatus && <th>Actions</th>}
             {tailColumns.map((col) => (
               <th key={col.key}>{col.label}</th>
@@ -180,6 +224,7 @@ const TicketsTable = ({
                   <td key={col.key}>{ticket[col.key] || '—'}</td>
                 ))}
                 <td>{renderTaskStatus(ticket)}</td>
+                {showTimerColumn && <td>{renderTimer(ticket)}</td>}
                 {actionsAfterStatus && (
                   <td>
                     <StatusActionCell ticket={ticket} onStatusChange={onStatusChange} onOperatorChange={onOperatorChange} />

@@ -8,6 +8,7 @@ export const STATUS = {
   READY_TO_QC: 'READY_TO_QC',
   IN_QC: 'IN_QC',
   REJECTED: 'REJECTED',        // Sent back by QC to the original agent
+  REWORK: 'REWORK',            // Claimed by the agent to redo after rejection
   TRAFFICKED: 'TRAFFICKED',    // Fully approved and live
 };
 
@@ -20,6 +21,7 @@ export const STATUS_META = {
   [STATUS.READY_TO_QC]: { text: 'Ready to QC', className: 'status-ready-qc' },
   [STATUS.IN_QC]: { text: 'In QC', className: 'status-in-qc' },
   [STATUS.REJECTED]: { text: 'Rejected', className: 'status-rejected' },
+  [STATUS.REWORK]: { text: 'Rework', className: 'status-rework' },
   [STATUS.TRAFFICKED]: { text: 'Trafficked', className: 'status-trafficked' },
 };
 
@@ -217,7 +219,7 @@ export const initialMockTickets = [
     subject: 'Trailer copy — QA flagged mismatch',
     assignee: 'Priya Nair',
     operator: 'Priya Nair',
-    status: STATUS.REJECTED,
+    status: STATUS.REWORK,
     ...baseFields,
     taskReceivedTime: '2026-07-14 03:00 PM',
     campaignName: 'Summer Drop 2026',
@@ -263,7 +265,7 @@ export const initialMockTickets = [
     subject: 'Regional campaign — banner copy mismatch',
     assignee: 'Devika Rao',
     operator: 'Devika Rao',
-    status: STATUS.REJECTED,
+    status: STATUS.REWORK,
     ...baseFields,
     marketingCampaign: 'Regional Push',
     page: 'Netflix LatAm',

@@ -15,6 +15,7 @@ const STATUS_FILTERS = {
   readyToQc: (t) => t.status === STATUS.READY_TO_QC,
   inQc: (t) => t.status === STATUS.IN_QC,
   rejected: (t) => t.status === STATUS.REJECTED,
+  rework: (t) => t.status === STATUS.REWORK,
   trafficked: (t) => t.status === STATUS.TRAFFICKED,
 };
 
@@ -36,6 +37,8 @@ const Tickets = () => {
               ...t,
               status: newStatus,
               rejectionNote: newStatus === STATUS.REJECTED ? rejectionComment : undefined,
+              inProgressStartedAt:
+                newStatus === STATUS.IN_PROGRESS ? new Date().toISOString() : t.inProgressStartedAt,
               updatedAt: timestamp(),
             }
           : t
@@ -63,6 +66,7 @@ const Tickets = () => {
     readyToQc: tickets.filter((t) => t.status === STATUS.READY_TO_QC).length,
     inQc: tickets.filter((t) => t.status === STATUS.IN_QC).length,
     rejected: tickets.filter((t) => t.status === STATUS.REJECTED).length,
+    rework: tickets.filter((t) => t.status === STATUS.REWORK).length,
     trafficked: tickets.filter((t) => t.status === STATUS.TRAFFICKED).length,
   };
 
