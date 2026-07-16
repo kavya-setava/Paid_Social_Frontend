@@ -5,6 +5,60 @@
   animation: fadeIn 0.25s ease-out;
 }
 
+/* Search bar shared across QM/Agent list views */
+.ps-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 6px;
+  padding: 8px 12px;
+  background: #1c1c1c;
+  border: 1px solid #2e2e2e;
+  border-radius: 10px;
+  color: #8c8c8c;
+}
+
+.ps-search-bar input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #f5f5f5;
+  font-size: 14px;
+}
+
+.ps-search-bar input::placeholder {
+  color: #6b7280;
+}
+
+.ps-search-submit,
+.ps-search-clear {
+  padding: 7px 14px;
+  border-radius: 7px;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ps-search-submit {
+  background: #e50914;
+  color: #fff;
+}
+
+.ps-search-submit:hover {
+  background: #c11119;
+}
+
+.ps-search-clear {
+  background: #2a2a2a;
+  color: #cbd5e1;
+}
+
+.ps-search-clear:hover {
+  background: #333;
+}
+
 /* Smooth entry animation when switching tabs */
 @keyframes fadeIn {
   from {

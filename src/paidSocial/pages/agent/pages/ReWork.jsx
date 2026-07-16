@@ -1,54 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import TicketsTable from '../components/TicketsTable';
-import { initialMockTickets, STATUS } from '../components/mockTickets';
+import { agentApi, ticketApi, errMessage } from '../../../api/paidSocialApi';
+import { normalizeList } from '../../../utils/tickets';
+import { toastSuccess, toastError } from '../../../utils/toast';
+import usePaidSocket from '../../../hooks/usePaidSocket';
 import './Tickets.css';
 
-// Dedicated rework queue: only tickets QC has rejected land here, with
-// Continue Working / Reassign actions (handled by StatusActionCell).
+// Common rework bucket: REJECTED tickets any agent can claim (Pick).
 const ReWork = () => {
-  const [tickets, setTickets] = useState(initialMockTickets);
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState(null);
 
-  const timestamp = () =>
-    new Date().toLocaleString('en-US', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    });
+  const fetchBucket = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await ticketApi.getRework('available');
+      setTickets(normalizeList(res?.data || []));
+    } catch (err) {
+      toastError(errMessage(err, 'Failed to load the rework bucket'));
+      setTickets([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const handleStatusChange = (ticketId, newStatus) => {
-    setTickets((prev) =>
-      prev.map((t) =>
-        t.id === ticketId
-          ? {
-              ...t,
-              status: newStatus,
-              inProgressStartedAt:
-                newStatus === STATUS.IN_PROGRESS ? new Date().toISOString() : t.inProgressStartedAt,
-              updatedAt: timestamp(),
-            }
-          : t
-      )
-    );
+  useEffect(() => { fetchBucket(); }, [fetchBucket]);
+  usePaidSocket(() => fetchBucket());
+
+  const handlePick = async (id) => {
+    setBusyId(id);
+    try {
+      await agentApi.pickRework(id);
+      toastSuccess('Picked — it is now in your queue');
+      fetchBucket();
+    } catch (err) {
+      toastError(errMessage(err, 'Could not pick this ticket (someone may have claimed it)'));
+    } finally {
+      setBusyId(null);
+    }
   };
-
-  const handleOperatorChange = (ticketId, operatorName) => {
-    setTickets((prev) =>
-      prev.map((t) =>
-        t.id === ticketId
-          ? { ...t, operator: operatorName, updatedAt: timestamp() }
-          : t
-      )
-    );
-  };
-
-  const reworkTickets = tickets.filter((t) => t.status === STATUS.REWORK);
 
   return (
     <div className="tickets-page">
+      <h2 style={{ color: '#f5f5f5', margin: '4px 0 12px', fontSize: '18px' }}>Rework Bucket</h2>
       <TicketsTable
-        tickets={reworkTickets}
+        tickets={tickets}
+        loading={loading}
         activeStatus="rework"
-        onStatusChange={handleStatusChange}
-        onOperatorChange={handleOperatorChange}
+        mode="bucket"
+        busyId={busyId}
+        actions={{ onPick: handlePick }}
       />
     </div>
   );

@@ -1,90 +1,82 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import StatusCards from '../components/StatusCards';
 import TicketsTable from '../components/TicketsTable';
-import { initialMockTickets, STATUS } from '../components/mockTickets';
+import { agentApi, errMessage } from '../../../api/paidSocialApi';
+import { normalizeList, mapCounts } from '../../../utils/tickets';
+import { toastSuccess, toastError } from '../../../utils/toast';
+import usePaidSocket from '../../../hooks/usePaidSocket';
 import './Tickets.css';
 
-// Maps each StatusCards tab to the ticket(s) it should show. "In Progress"
-// intentionally also surfaces On Hold tickets so the Pause/Resume actions
-// and dropdown both make sense from that one tab.
-const STATUS_FILTERS = {
-  all: () => true,
-  rttAssigned: (t) => t.status === STATUS.RTT,
-  inProgress: (t) => t.status === STATUS.IN_PROGRESS || t.status === STATUS.ON_HOLD,
-  onHold: (t) => t.status === STATUS.ON_HOLD,
-  readyToQc: (t) => t.status === STATUS.READY_TO_QC,
-  inQc: (t) => t.status === STATUS.IN_QC,
-  rejected: (t) => t.status === STATUS.REJECTED,
-  rework: (t) => t.status === STATUS.REWORK,
-  trafficked: (t) => t.status === STATUS.TRAFFICKED,
+const AGENT_TAB_QUERY = {
+  all: {},
+  rttAssigned: { status: 'RTT' },
+  inProgress: { status: 'IN_PROGRESS' },
+  onHold: { status: 'ON_HOLD' },
+  readyToQc: { status: 'READY_TO_QC' },
+  inQc: { status: 'IN_QC' },
+  rejected: { status: 'REJECTED' },
+  rework: { status: 'REJECTED' },
+  trafficked: { status: 'TRAFFICKED' },
 };
 
 const Tickets = () => {
   const [activeStatus, setActiveStatus] = useState('all');
-  const [tickets, setTickets] = useState(initialMockTickets);
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [counts, setCounts] = useState({});
+  const [busyId, setBusyId] = useState(null);
 
-  const timestamp = () =>
-    new Date().toLocaleString('en-US', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    });
+  const statusRef = useRef(activeStatus);
+  statusRef.current = activeStatus;
 
-  const handleStatusChange = (ticketId, newStatus, rejectionComment) => {
-    setTickets((prev) =>
-      prev.map((t) =>
-        t.id === ticketId
-          ? {
-              ...t,
-              status: newStatus,
-              rejectionNote: newStatus === STATUS.REJECTED ? rejectionComment : undefined,
-              inProgressStartedAt:
-                newStatus === STATUS.IN_PROGRESS ? new Date().toISOString() : t.inProgressStartedAt,
-              updatedAt: timestamp(),
-            }
-          : t
-      )
-    );
+  const fetchTickets = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await agentApi.getTickets(AGENT_TAB_QUERY[statusRef.current] || {});
+      setTickets(normalizeList(res?.data || []));
+      setCounts(mapCounts(res?.counts || {}));
+    } catch (err) {
+      toastError(errMessage(err, 'Failed to load your tickets'));
+      setTickets([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchTickets(); }, [activeStatus, fetchTickets]);
+  usePaidSocket(() => fetchTickets());
+
+  // Wrap a lifecycle action with busy state, toast + refresh.
+  const run = (fn, successMsg) => async (id) => {
+    setBusyId(id);
+    try {
+      await fn(id);
+      toastSuccess(successMsg);
+      fetchTickets();
+    } catch (err) {
+      toastError(errMessage(err, 'Action failed'));
+    } finally {
+      setBusyId(null);
+    }
   };
 
-  const handleOperatorChange = (ticketId, operatorName) => {
-    setTickets((prev) =>
-      prev.map((t) => (t.id === ticketId ? { ...t, operator: operatorName } : t))
-    );
+  const actions = {
+    onStart: run((id) => agentApi.start(id), 'Work started — timer running'),
+    onHold: run((id) => agentApi.hold(id, 'HOLD'), 'Ticket put on hold'),
+    onResume: run((id) => agentApi.resume(id), 'Work resumed — timer running'),
+    onSubmit: run((id) => agentApi.submit(id), 'Submitted to QC'),
   };
-
-  const handleTraffickerCommentChange = (ticketId, comment) => {
-    setTickets((prev) =>
-      prev.map((t) => (t.id === ticketId ? { ...t, traffickerComments: comment } : t))
-    );
-  };
-
-  const counts = {
-    all: tickets.length,
-    rttAssigned: tickets.filter((t) => t.status === STATUS.RTT).length,
-    inProgress: tickets.filter((t) => t.status === STATUS.IN_PROGRESS || t.status === STATUS.ON_HOLD).length,
-    onHold: tickets.filter((t) => t.status === STATUS.ON_HOLD).length,
-    readyToQc: tickets.filter((t) => t.status === STATUS.READY_TO_QC).length,
-    inQc: tickets.filter((t) => t.status === STATUS.IN_QC).length,
-    rejected: tickets.filter((t) => t.status === STATUS.REJECTED).length,
-    rework: tickets.filter((t) => t.status === STATUS.REWORK).length,
-    trafficked: tickets.filter((t) => t.status === STATUS.TRAFFICKED).length,
-  };
-
-  const visibleTickets = tickets.filter(STATUS_FILTERS[activeStatus] || STATUS_FILTERS.all);
 
   return (
     <div className="tickets-page">
-      <StatusCards
-        counts={counts}
-        activeStatus={activeStatus}
-        onStatusSelect={setActiveStatus}
-      />
+      <StatusCards counts={counts} activeStatus={activeStatus} onStatusSelect={setActiveStatus} />
       <TicketsTable
-        tickets={visibleTickets}
+        tickets={tickets}
+        loading={loading}
         activeStatus={activeStatus}
-        onStatusChange={handleStatusChange}
-        onOperatorChange={handleOperatorChange}
-        onTraffickerCommentChange={handleTraffickerCommentChange}
+        mode="mine"
+        busyId={busyId}
+        actions={actions}
       />
     </div>
   );

@@ -1,158 +1,94 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import StatusCards from '../components/StatusCards';
 import TicketsTable from '../components/TicketsTable';
+import { qcApi, ticketApi, errMessage } from '../../../api/paidSocialApi';
+import { normalizeList, STATUS } from '../../../utils/tickets';
+import { toastSuccess, toastError } from '../../../utils/toast';
+import usePaidSocket from '../../../hooks/usePaidSocket';
 import './All.css';
+
+// QC region overview. There is no single "all QC tickets" endpoint, so we
+// merge the common pool, my QC tickets and the region rework bucket, dedupe
+// by id, and filter client-side by the selected tab.
+const STATUS_BY_TAB = {
+    readyToQc: STATUS.READY_TO_QC,
+    inQc: STATUS.IN_QC,
+    rejected: STATUS.REJECTED,
+    trafficked: STATUS.TRAFFICKED,
+};
 
 const All = () => {
     const [activeStatus, setActiveStatus] = useState('all');
-    const [tickets, setTickets] = useState([]);
+    const [allTickets, setAllTickets] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [busyId, setBusyId] = useState(null);
 
-    // Ready for API Integration
-    const [counts, setCounts] = useState({
-        all: 25,
-        readyToQc: 4,
-        inQc: 3,
-        rejected: 1,
-        trafficked: 3,
-    });
-
-    useEffect(() => {
-        // Replace this simulation block with your real Axios/Fetch call:
-        // axios.get(`/api/qc-tickets?status=${activeStatus}`).then(...)
+    const load = useCallback(async () => {
         setLoading(true);
-        const mockTimeout = setTimeout(() => {
-            const mockData = [
-                {
-                    id: 1,
-                    taskReceivedTime: '2024-01-15 10:30 AM',
-                    marketingCampaign: 'Summer Sale 2024',
-                    campaignName: 'Summer Campaign',
-                    adSetName: 'US - 18-35 - Mobile',
-                    adName: 'Summer Ad V1',
-                    highVisibilityTitles: 'Yes',
-                    adTech: 'Meta',
-                    taskType: 'Creative Review',
-                    page: 'Facebook',
-                    platform: 'Meta Ads',
-                    region: 'US',
-                    adFlightStart: '2024-01-20 12:00 AM',
-                    adFlightEnd: '2024-02-20 11:59 PM',
-                    operator: 'John Doe',
-                    taskAssignedTime: '2024-01-15 11:00 AM',
-                    publishDate: '2024-01-20',
-                    launchingPrioritization: 'High',
-                    taskStatus: 'Ready to QC',
-                    socialiteNotes: 'Need to review creative assets',
-                    traffickerComments: 'Assets uploaded',
-                    qcThread: 'Thread #123',
-                    qcEr: 'Unassigned',
-                    qcStatus: 'Ready to QC',
-                    qcComments: 'Check brand guidelines',
-                },
-                {
-                    id: 2,
-                    taskReceivedTime: '2024-01-14 02:15 PM',
-                    marketingCampaign: 'Winter Promo',
-                    campaignName: 'Winter Campaign',
-                    adSetName: 'EU - 25-45 - Desktop',
-                    adName: 'Winter Ad V2',
-                    highVisibilityTitles: 'No',
-                    adTech: 'Google',
-                    taskType: 'QA Review',
-                    page: 'Google Ads',
-                    platform: 'Google Ads',
-                    region: 'EU',
-                    adFlightStart: '2024-01-25 12:00 AM',
-                    adFlightEnd: '2024-02-25 11:59 PM',
-                    operator: 'Sarah Johnson',
-                    taskAssignedTime: '2024-01-14 03:00 PM',
-                    publishDate: '2024-01-25',
-                    launchingPrioritization: 'Medium',
-                    taskStatus: 'In QC',
-                    socialiteNotes: 'Awaiting creative assets',
-                    traffickerComments: 'In progress',
-                    qcThread: 'Thread #124',
-                    qcEr: 'Trupti',
-                    qcStatus: 'In QC',
-                    qcComments: 'Need revisions',
-                },
-                {
-                    id: 3,
-                    taskReceivedTime: '2024-01-13 09:00 AM',
-                    marketingCampaign: 'Spring Launch',
-                    campaignName: 'Spring Campaign',
-                    adSetName: 'APAC - 20-40 - All Devices',
-                    adName: 'Spring Ad V3',
-                    highVisibilityTitles: 'Yes',
-                    adTech: 'TikTok',
-                    taskType: 'Creative Review',
-                    page: 'TikTok',
-                    platform: 'TikTok Ads',
-                    region: 'APAC',
-                    adFlightStart: '2024-02-01 12:00 AM',
-                    adFlightEnd: '2024-03-01 11:59 PM',
-                    operator: 'Mike Brown',
-                    taskAssignedTime: '2024-01-13 10:00 AM',
-                    publishDate: '2024-02-01',
-                    launchingPrioritization: 'High',
-                    taskStatus: 'Trafficked',
-                    socialiteNotes: 'Approved',
-                    traffickerComments: 'Live on platform',
-                    qcThread: 'Thread #125',
-                    qcEr: 'Divya',
-                    qcStatus: 'Trafficked',
-                    qcComments: 'All good',
-                },
-                {
-                    id: 4,
-                    taskReceivedTime: '2024-01-12 11:45 AM',
-                    marketingCampaign: 'Holiday Special',
-                    campaignName: 'Holiday Campaign',
-                    adSetName: 'LATAM - 18-30 - Mobile',
-                    adName: 'Holiday Ad V4',
-                    highVisibilityTitles: 'No',
-                    adTech: 'Meta',
-                    taskType: 'QA Review',
-                    page: 'Instagram',
-                    platform: 'Meta Ads',
-                    region: 'LATAM',
-                    adFlightStart: '2024-01-15 12:00 AM',
-                    adFlightEnd: '2024-02-15 11:59 PM',
-                    operator: 'Lisa Wilson',
-                    taskAssignedTime: '2024-01-12 01:00 PM',
-                    publishDate: '2024-01-15',
-                    launchingPrioritization: 'Low',
-                    taskStatus: 'Rejected',
-                    socialiteNotes: 'Review pending',
-                    traffickerComments: 'Awaiting QC',
-                    qcThread: 'Thread #126',
-                    qcEr: 'Kavya',
-                    qcStatus: 'Rejected',
-                    qcComments: 'Brand guidelines not followed',
-                },
+        try {
+            const [pool, mine, rework] = await Promise.all([
+                qcApi.getPool().catch(() => ({})),
+                qcApi.getMyTickets().catch(() => ({})),
+                ticketApi.getRework('all').catch(() => ({})),
+            ]);
+            const merged = [
+                ...(pool?.data || []),
+                ...(mine?.data || []),
+                ...(rework?.data || []),
             ];
-
-            // Filter data based on active status
-            let filteredData = mockData;
-            if (activeStatus !== 'all') {
-                const statusMap = {
-                    readyToQc: 'Ready to QC',
-                    inQc: 'In QC',
-                    rejected: 'Rejected',
-                    trafficked: 'Trafficked',
-                };
-                filteredData = mockData.filter(
-                    (item) => item.taskStatus === statusMap[activeStatus]
-                );
-            }
-
-            setTickets(filteredData);
+            const seen = new Set();
+            const unique = merged.filter((t) => {
+                const id = t._id;
+                if (seen.has(id)) return false;
+                seen.add(id);
+                return true;
+            });
+            setAllTickets(normalizeList(unique));
+        } catch (err) {
+            toastError(errMessage(err, 'Failed to load tickets'));
+            setAllTickets([]);
+        } finally {
             setLoading(false);
-        }, 400);
+        }
+    }, []);
 
-        return () => clearTimeout(mockTimeout);
-    }, [activeStatus]);
+    useEffect(() => { load(); }, [load]);
+    usePaidSocket(() => load());
+
+    const run = (fn, msg) => async (...args) => {
+        const id = args[0];
+        setBusyId(id);
+        try {
+            await fn(...args);
+            toastSuccess(msg);
+            load();
+        } catch (err) {
+            toastError(errMessage(err, 'Action failed'));
+        } finally {
+            setBusyId(null);
+        }
+    };
+
+    const actions = {
+        onPick: run((id) => qcApi.pick(id), 'Picked — QC timer running'),
+        onApprove: run((id) => qcApi.approve(id), 'Approved & trafficked'),
+        onReject: run((id, feedback, tags) => qcApi.reject(id, feedback, tags), 'Sent back for rework'),
+        onHold: run((id) => qcApi.hold(id, 'HOLD'), 'On hold'),
+        onResume: run((id) => qcApi.resume(id), 'Resumed — QC timer running'),
+    };
+
+    const counts = {
+        all: allTickets.length,
+        readyToQc: allTickets.filter((t) => t._raw?.status === STATUS.READY_TO_QC).length,
+        inQc: allTickets.filter((t) => t._raw?.status === STATUS.IN_QC).length,
+        rejected: allTickets.filter((t) => t._raw?.status === STATUS.REJECTED).length,
+        trafficked: allTickets.filter((t) => t._raw?.status === STATUS.TRAFFICKED).length,
+    };
+
+    const visible =
+        activeStatus === 'all'
+            ? allTickets
+            : allTickets.filter((t) => t._raw?.status === STATUS_BY_TAB[activeStatus]);
 
     return (
         <div className="all-page">
@@ -163,9 +99,11 @@ const All = () => {
                 tabType="all"
             />
             <TicketsTable
-                tickets={tickets}
+                tickets={visible}
                 loading={loading}
-                activeStatus={activeStatus}
+                showActions
+                busyId={busyId}
+                actions={actions}
             />
         </div>
     );

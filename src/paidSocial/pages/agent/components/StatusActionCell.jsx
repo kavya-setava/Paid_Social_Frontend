@@ -1,100 +1,51 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
-import { STATUS, OPERATORS } from './mockTickets';
+import { STATUS } from '../../../utils/tickets';
 
-// Renders the quick-action control for a ticket's current status.
-//   IN_PROGRESS -> "Pause" (-> ON_HOLD)
-//   ON_HOLD     -> "Resume" (-> IN_PROGRESS)
-//   REJECTED    -> "Continue working" (stays with the same operator), or
-//                  "Reassign" to hand the ticket to another operator —
-//                  reassigning sends the ticket back to RTT under the new
-//                  operator's queue.
-//   everything else (RTT, READY_TO_QC, IN_QC, TRAFFICKED) -> no action
-const StatusActionCell = ({ ticket, onStatusChange, onOperatorChange }) => {
-  const [reassignMode, setReassignMode] = useState(false);
-  const [selectedOperator, setSelectedOperator] = useState('');
+// Renders the agent's work actions for a ticket, gated by its live status
+// (see PaidSocial-API-Docs.md §4):
+//   RTT / REJECTED (mine)   -> Start
+//   REJECTED (bucket)       -> Pick   (mode="bucket")
+//   IN_PROGRESS             -> Hold, Submit to QC
+//   ON_HOLD (mine)          -> Resume
+const StatusActionCell = ({ ticket, mode = 'mine', busy = false, onStart, onHold, onResume, onSubmit, onPick }) => {
+  const status = ticket._raw?.status || ticket.status;
+  const id = ticket.id;
 
-  if (ticket.status === STATUS.IN_PROGRESS) {
+  if (mode === 'bucket' && status === STATUS.REJECTED) {
     return (
-      <button
-        type="button"
-        className="action-btn action-btn-secondary"
-        onClick={() => onStatusChange(ticket.id, STATUS.ON_HOLD)}
-      >
-        Pause
+      <button type="button" className="action-btn action-btn-primary" disabled={busy} onClick={() => onPick(id)}>
+        Pick
       </button>
     );
   }
 
-  if (ticket.status === STATUS.ON_HOLD) {
+  if (status === STATUS.RTT || status === STATUS.REJECTED) {
     return (
-      <button
-        type="button"
-        className="action-btn action-btn-primary"
-        onClick={() => onStatusChange(ticket.id, STATUS.IN_PROGRESS)}
-      >
-        Resume
+      <button type="button" className="action-btn action-btn-primary" disabled={busy} onClick={() => onStart(id)}>
+        Start
       </button>
     );
   }
 
-  if (ticket.status === STATUS.REJECTED) {
-    if (!reassignMode) {
-      return (
-        <div className="action-group">
-          <button
-            type="button"
-            className="action-btn action-btn-primary"
-            onClick={() => onStatusChange(ticket.id, STATUS.IN_PROGRESS)}
-          >
-            Continue working
-          </button>
-          <button
-            type="button"
-            className="action-btn action-btn-secondary"
-            onClick={() => setReassignMode(true)}
-          >
-            Reassign
-          </button>
-        </div>
-      );
-    }
-
-    const otherOperators = OPERATORS.filter((name) => name !== ticket.operator);
-
+  if (status === STATUS.IN_PROGRESS) {
     return (
       <div className="action-group">
-        <select
-          className="status-select"
-          value={selectedOperator}
-          onChange={(e) => setSelectedOperator(e.target.value)}
-        >
-          <option value="">Choose operator…</option>
-          {otherOperators.map((name) => (
-            <option key={name} value={name}>{name}</option>
-          ))}
-        </select>
-        <button
-          type="button"
-          className="action-btn action-btn-primary"
-          disabled={!selectedOperator}
-          onClick={() => {
-            onOperatorChange(ticket.id, selectedOperator);
-            onStatusChange(ticket.id, STATUS.RTT);
-            setReassignMode(false);
-            setSelectedOperator('');
-          }}
-        >
-          Confirm
+        <button type="button" className="action-btn action-btn-secondary" disabled={busy} onClick={() => onHold(id)}>
+          Hold
         </button>
-        <button
-          type="button"
-          className="action-btn action-btn-secondary"
-          onClick={() => setReassignMode(false)}
-        >
-          Cancel
+        <button type="button" className="action-btn action-btn-primary" disabled={busy} onClick={() => onSubmit(id)}>
+          Submit to QC
         </button>
       </div>
+    );
+  }
+
+  if (status === STATUS.ON_HOLD) {
+    return (
+      <button type="button" className="action-btn action-btn-primary" disabled={busy} onClick={() => onResume(id)}>
+        Resume
+      </button>
     );
   }
 
@@ -102,13 +53,14 @@ const StatusActionCell = ({ ticket, onStatusChange, onOperatorChange }) => {
 };
 
 StatusActionCell.propTypes = {
-  ticket: PropTypes.shape({
-    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-    status: PropTypes.string.isRequired,
-    operator: PropTypes.string,
-  }).isRequired,
-  onStatusChange: PropTypes.func.isRequired,
-  onOperatorChange: PropTypes.func.isRequired,
+  ticket: PropTypes.object.isRequired,
+  mode: PropTypes.oneOf(['mine', 'bucket']),
+  busy: PropTypes.bool,
+  onStart: PropTypes.func,
+  onHold: PropTypes.func,
+  onResume: PropTypes.func,
+  onSubmit: PropTypes.func,
+  onPick: PropTypes.func,
 };
 
 export default StatusActionCell;

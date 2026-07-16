@@ -254,19 +254,24 @@ const COLUMN_MAP = {
     ]
 };
 
+// Operator cell becomes an assign/reassign dropdown on the RTT tabs.
+const ASSIGNABLE_TABS = ['rttUnassigned', 'rttAssigned'];
+
 const TicketsTable = ({
     tickets = [],
     loading = false,
     activeStatus = 'all',
-    operatorsList = ['Jane Doe', 'John Smith', 'Sarah Jenkins', 'Alex Smith'], // Placeholder names; pass via props from parent later
-    onOperatorChange = () => { }
+    operators = [],            // [{ _id, name, isOnBreak }]
+    assigningId = null,
+    onAssign = () => { },
 }) => {
     if (loading) {
-        return <div className="table-loading">Loading data from backend...</div>;
+        return <div className="table-loading">Loading tickets…</div>;
     }
 
     // Fallback cleanly to 'all' headers if the dynamic key isn't registered
     const currentColumns = COLUMN_MAP[activeStatus] || COLUMN_MAP.all;
+    const canAssign = ASSIGNABLE_TABS.includes(activeStatus);
 
     return (
         <div className="table-wrapper">
@@ -306,18 +311,24 @@ const TicketsTable = ({
                                         );
                                     }
 
-                                    // Render Operator Dropdown specifically for RTT Unassigned view
-                                    if (col.key === 'operator' && activeStatus === 'rttUnassigned') {
+                                    // Render assign/reassign dropdown on the RTT tabs.
+                                    if (col.key === 'operator' && canAssign) {
+                                        const isAssigning = assigningId === ticket.id;
                                         return (
                                             <td key={cIdx}>
                                                 <select
                                                     className="operator-dropdown"
-                                                    value={cellValue || '-'}
-                                                    onChange={(e) => onOperatorChange(ticket.id, e.target.value)}
+                                                    value={ticket.agentId || ''}
+                                                    disabled={isAssigning}
+                                                    onChange={(e) => onAssign(ticket.id, e.target.value)}
                                                 >
-                                                    <option value="-">Select Operator</option>
-                                                    {operatorsList.map((name, uIdx) => (
-                                                        <option key={uIdx} value={name}>{name}</option>
+                                                    <option value="">
+                                                        {isAssigning ? 'Assigning…' : 'Select Operator'}
+                                                    </option>
+                                                    {operators.map((op) => (
+                                                        <option key={op._id} value={op._id} disabled={op.isOnBreak}>
+                                                            {op.name}{op.isOnBreak ? ' (on break)' : ''}
+                                                        </option>
                                                     ))}
                                                 </select>
                                             </td>
@@ -343,8 +354,9 @@ TicketsTable.propTypes = {
     tickets: PropTypes.arrayOf(PropTypes.object),
     loading: PropTypes.bool,
     activeStatus: PropTypes.string,
-    operatorsList: PropTypes.arrayOf(PropTypes.string),
-    onOperatorChange: PropTypes.func,
+    operators: PropTypes.arrayOf(PropTypes.object),
+    assigningId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    onAssign: PropTypes.func,
 };
 
 export default TicketsTable;

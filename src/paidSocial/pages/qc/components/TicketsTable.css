@@ -246,6 +246,75 @@
     background-color: #0d0d0d;
 }
 
+/* Workflow status badges used by the integrated table */
+.status-tag.status-rtt { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.2); }
+.status-tag.status-in-progress { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2); }
+.status-tag.status-on-hold { background: rgba(107, 114, 128, 0.15); color: #9ca3af; border: 1px solid rgba(107, 114, 128, 0.2); }
+.status-tag.status-ready-qc { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.2); }
+
+/* Live UT timer */
+.ps-timer {
+    font-variant-numeric: tabular-nums;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #cbd5e1;
+}
+.ps-timer.running { color: #34d399; font-weight: 600; }
+.ps-timer.running::before {
+    content: '● ';
+    font-size: 9px;
+    animation: ps-pulse 1.2s ease-in-out infinite;
+}
+@keyframes ps-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* Action buttons + reject panel */
+.action-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.action-btn-primary { background: #e50914; color: #fff; }
+.action-btn-primary:hover:not(:disabled) { background: #b20710; }
+.action-btn-secondary { background: transparent; color: #ccc; border: 1px solid #333; }
+.action-btn-secondary:hover:not(:disabled) { background: #1e1e1e; }
+.action-btn-approve { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.25); }
+.action-btn-approve:hover:not(:disabled) { background: rgba(16, 185, 129, 0.28); }
+.action-btn-reject { background: rgba(220, 38, 38, 0.15); color: #f87171; border: 1px solid rgba(220, 38, 38, 0.25); }
+.action-btn-reject:hover:not(:disabled) { background: rgba(220, 38, 38, 0.28); }
+.action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.action-note { font-size: 12px; color: #9ca3af; font-style: italic; }
+
+.qc-reject-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    min-width: 240px;
+    white-space: normal;
+}
+.rejection-input {
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 13px;
+    background: #141414;
+    color: #fff;
+    resize: vertical;
+    min-height: 52px;
+    font-family: inherit;
+}
+.rejection-input:focus { outline: none; border-color: #e50914; }
+.qc-tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.qc-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: #9ca3af;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 999px;
+    padding: 3px 8px;
+    cursor: pointer;
+}
+.qc-tag.on { color: #f472b6; border-color: rgba(236, 72, 153, 0.4); }
+.qc-tag input { accent-color: #e50914; }
+
 /* Make table scrollable horizontally */
 .table-wrapper {
     overflow-x: auto;

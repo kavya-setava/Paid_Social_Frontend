@@ -150,6 +150,30 @@
   font-style: italic;
 }
 
+/* Live UT timer */
+.ps-timer {
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
+.ps-timer.running {
+  color: #34d399;
+  font-weight: 600;
+}
+
+.ps-timer.running::before {
+  content: '● ';
+  font-size: 9px;
+  vertical-align: middle;
+  animation: ps-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes ps-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
 .qc-reject-group {
   flex-direction: column;
   align-items: stretch;

@@ -1,28 +1,19 @@
 import React, { useState } from 'react';
-import Header from '../components/Header';
+import PaidHeader from '../../../components/PaidHeader';
 import Sidebar from '../components/Sidebar';
 import Tickets from './Tickets';
 import CalendarInvite from './CalendarInvite';
 import ReWork from './ReWork';
+import usePaidGuard from '../../../hooks/usePaidGuard';
 import './Dashboard.css';
 
 const AgentDashboard = () => {
   const [currentTab, setCurrentTab] = useState('tickets');
-  const [user] = useState({ name: 'Agent User' });
-
-  const handleLogout = () => {
-    console.log('Clearing session auth tokens safely...');
-    // window.location.href = '/login';
-  };
+  usePaidGuard('AGENT');
 
   return (
     <div className="qm-dashboard-layout">
-      <Header
-        title="Agent Workspace"
-        user={user}
-        notificationCount={0}
-        onLogout={handleLogout}
-      />
+      <PaidHeader title="Agent Workspace" />
 
       <div className="dashboard-body">
         <Sidebar currentTab={currentTab} onTabChange={setCurrentTab} />
@@ -31,7 +22,6 @@ const AgentDashboard = () => {
           {currentTab === 'tickets' && <Tickets />}
           {currentTab === 'calendar' && <CalendarInvite />}
           {currentTab === 'rework' && <ReWork />}
-
         </main>
       </div>
     </div>

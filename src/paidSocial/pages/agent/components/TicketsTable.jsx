@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import StatusActionCell from './StatusActionCell';
-import { STATUS, STATUS_META, OPERATORS } from './mockTickets';
+import { STATUS, statusClass, liveSeconds, fmtDuration, isTimerRunning } from '../../../utils/tickets';
 import './TicketsTable.css';
 
-// Columns identical across every tab, rendered between Operator and Task Status.
+// Columns shared across every tab, rendered between Operator and Task Status.
 const BASE_COLUMNS = [
   { key: 'taskReceivedTime', label: 'Task Received Time' },
   { key: 'marketingCampaign', label: 'Marketing Campaign' },
@@ -27,141 +27,67 @@ const MID_COLUMNS = [
   { key: 'launchingPrioritization', label: 'Launching Prioritization' },
 ];
 
-// Superset of the trailing, workflow-stage-dependent columns. Each tab picks
-// its own ordered subset via TAB_CONFIG.tail below.
 const TAIL_COLUMN_DEFS = {
   socialiteNotes: { key: 'socialiteNotes', label: 'Socialite Notes' },
   traffickerComments: { key: 'traffickerComments', label: 'Trafficker Comments' },
   qcThread: { key: 'qcThread', label: 'QC Thread' },
   qcer: { key: 'qcer', label: "QC'er" },
   qcStatus: { key: 'qcStatus', label: 'QC Status' },
-  qcComment: { key: 'qcComment', label: 'QC Comments' },
+  qcComment: { key: 'qcComments', label: 'QC Comments' },
 };
 
 const FULL_TAIL = ['socialiteNotes', 'traffickerComments', 'qcThread', 'qcer', 'qcStatus', 'qcComment'];
 
-// Formats ms-since-epoch elapsed time as HH:MM:SS for the in-progress timer column.
-const formatElapsed = (startIso, now) => {
-  const start = new Date(startIso).getTime();
-  if (Number.isNaN(start)) return '—';
-  const diffSeconds = Math.max(0, Math.floor((now - start) / 1000));
-  const hrs = String(Math.floor(diffSeconds / 3600)).padStart(2, '0');
-  const mins = String(Math.floor((diffSeconds % 3600) / 60)).padStart(2, '0');
-  const secs = String(diffSeconds % 60).padStart(2, '0');
-  return `${hrs}:${mins}:${secs}`;
+// Which trailing columns each tab shows.
+const TAB_TAIL = {
+  all: FULL_TAIL,
+  rttAssigned: ['socialiteNotes', 'qcThread'],
+  inProgress: ['socialiteNotes', 'traffickerComments', 'qcThread'],
+  onHold: ['socialiteNotes', 'traffickerComments', 'qcThread'],
+  readyToQc: ['socialiteNotes', 'traffickerComments', 'qcThread', 'qcer', 'qcStatus'],
+  inQc: ['socialiteNotes', 'traffickerComments', 'qcThread', 'qcer', 'qcStatus'],
+  rejected: FULL_TAIL,
+  rework: FULL_TAIL,
+  trafficked: FULL_TAIL,
 };
 
-// Per-tab behavior: which trailing columns show, whether Task Status is a
-// pill or an editable dropdown, whether the Actions column appears (and
-// where), and whether Trafficker Comments is an editable input.
-const TAB_CONFIG = {
-  all: { tail: FULL_TAIL, statusMode: 'pill', actions: 'none' },
-  rttAssigned: { tail: ['socialiteNotes', 'qcThread'], statusMode: 'dropdown-rtt', actions: 'none' },
-  inProgress: {
-    tail: ['socialiteNotes', 'traffickerComments', 'qcThread'],
-    statusMode: 'dropdown-in-progress',
-    actions: 'pause-resume',
-    actionsPosition: 'afterStatus',
-    traffickerCommentsEditable: true,
-    showTimer: true,
-  },
-  onHold: { tail: ['socialiteNotes', 'traffickerComments', 'qcThread'], statusMode: 'pill', actions: 'none' },
-  readyToQc: { tail: ['socialiteNotes', 'traffickerComments', 'qcThread', 'qcer', 'qcStatus'], statusMode: 'pill', actions: 'none' },
-  inQc: { tail: ['socialiteNotes', 'traffickerComments', 'qcThread', 'qcer', 'qcStatus'], statusMode: 'pill', actions: 'none' },
-  rejected: { tail: FULL_TAIL, statusMode: 'pill', actions: 'none' },
-  trafficked: { tail: FULL_TAIL, statusMode: 'pill', actions: 'none' },
-  rework: { tail: FULL_TAIL, statusMode: 'dropdown-rework', actions: 'none' },
-};
-
-// Operator cell is an editable picker only on these tabs; plain text elsewhere.
-const OPERATOR_EDITABLE_TABS = ['all', 'rttAssigned', 'rework'];
+// Tabs where the agent has actionable work.
+const ACTION_TABS = ['all', 'rttAssigned', 'inProgress', 'onHold', 'rejected', 'rework'];
 
 const TicketsTable = ({
   tickets = [],
   loading = false,
   activeStatus = 'all',
-  onStatusChange,
-  onOperatorChange,
-  onTraffickerCommentChange,
+  mode = 'mine',
+  busyId = null,
+  actions = {},
 }) => {
-  const config = TAB_CONFIG[activeStatus] || TAB_CONFIG.all;
-  const showTimerColumn = !!config.showTimer;
+  const tailKeys = TAB_TAIL[activeStatus] || FULL_TAIL;
+  const tailColumns = tailKeys.map((k) => TAIL_COLUMN_DEFS[k]);
+  const showActions = ACTION_TABS.includes(activeStatus) || mode === 'bucket';
 
-  const [now, setNow] = useState(() => Date.now());
-
+  // Tick every second so live timers re-render.
+  const [, setNow] = useState(() => Date.now());
   useEffect(() => {
-    if (!showTimerColumn) return undefined;
-    const interval = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(interval);
-  }, [showTimerColumn]);
+    const anyRunning = tickets.some((t) => isTimerRunning(t._ticket, 'agent'));
+    if (!anyRunning) return undefined;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [tickets]);
 
   if (loading) {
-    return <div className="table-loading">Loading data from backend...</div>;
+    return <div className="table-loading">Loading tickets…</div>;
   }
 
-  const operatorEditable = OPERATOR_EDITABLE_TABS.includes(activeStatus);
-  const showActions = config.actions !== 'none';
-  const actionsAfterStatus = showActions && config.actionsPosition === 'afterStatus';
-  const actionsAtEnd = showActions && !actionsAfterStatus;
-  const tailColumns = config.tail.map((key) => TAIL_COLUMN_DEFS[key]);
-
-  const columnCount =
-    2 + BASE_COLUMNS.length + 1 + MID_COLUMNS.length + 1 + (showTimerColumn ? 1 : 0) + (showActions ? 1 : 0) + tailColumns.length;
+  const columnCount = 2 + BASE_COLUMNS.length + 1 + MID_COLUMNS.length + 2 + tailColumns.length + (showActions ? 1 : 0);
 
   const renderTimer = (ticket) => {
-    if (ticket.status !== STATUS.IN_PROGRESS || !ticket.inProgressStartedAt) {
-      return '—';
-    }
-    return formatElapsed(ticket.inProgressStartedAt, now);
-  };
-
-  const renderTaskStatus = (ticket) => {
-    const meta = STATUS_META[ticket.status] || {};
-
-    if (config.statusMode === 'dropdown-rtt') {
-      return (
-        <select
-          className="status-select"
-          value={ticket.status}
-          onChange={(e) => onStatusChange(ticket.id, e.target.value)}
-        >
-          <option value={STATUS.RTT}>RTT</option>
-          <option value={STATUS.IN_PROGRESS}>In Progress</option>
-        </select>
-      );
-    }
-
-    if (config.statusMode === 'dropdown-rework') {
-      return (
-        <select
-          className="status-select"
-          value={ticket.status}
-          onChange={(e) => onStatusChange(ticket.id, e.target.value)}
-        >
-          <option value={STATUS.IN_PROGRESS}>In Progress</option>
-          <option value={STATUS.RTT}>RTT</option>
-          <option value={STATUS.ON_HOLD}>On Hold</option>
-        </select>
-      );
-    }
-
-    if (config.statusMode === 'dropdown-in-progress') {
-      return (
-        <select
-          className="status-select"
-          value={ticket.status}
-          onChange={(e) => onStatusChange(ticket.id, e.target.value)}
-        >
-          <option value={STATUS.IN_PROGRESS}>In Progress</option>
-          <option value={STATUS.ON_HOLD}>On Hold</option>
-          <option value={STATUS.READY_TO_QC}>Ready to QC</option>
-        </select>
-      );
-    }
-
+    const raw = ticket._ticket;
+    const secs = liveSeconds(raw, 'agent');
+    if (!secs && ticket._raw?.status === STATUS.RTT) return '—';
     return (
-      <span className={`status-tag ${meta.className || ''}`}>
-        {meta.text || ticket.status}
+      <span className={`ps-timer ${isTimerRunning(raw, 'agent') ? 'running' : ''}`}>
+        {fmtDuration(secs)}
       </span>
     );
   };
@@ -172,81 +98,48 @@ const TicketsTable = ({
         <thead>
           <tr>
             <th>Ticket ID</th>
-            <th>Subject</th>
-            {BASE_COLUMNS.map((col) => (
-              <th key={col.key}>{col.label}</th>
-            ))}
+            <th>Campaign</th>
+            {BASE_COLUMNS.map((col) => <th key={col.key}>{col.label}</th>)}
             <th>Operator</th>
-            {MID_COLUMNS.map((col) => (
-              <th key={col.key}>{col.label}</th>
-            ))}
+            {MID_COLUMNS.map((col) => <th key={col.key}>{col.label}</th>)}
             <th>Task Status</th>
-            {showTimerColumn && <th>Timer</th>}
-            {actionsAfterStatus && <th>Actions</th>}
-            {tailColumns.map((col) => (
-              <th key={col.key}>{col.label}</th>
-            ))}
-            {actionsAtEnd && <th>Actions</th>}
+            <th>Operator Time</th>
+            {tailColumns.map((col) => <th key={col.key}>{col.label}</th>)}
+            {showActions && <th>Actions</th>}
           </tr>
         </thead>
         <tbody>
           {tickets.length === 0 ? (
             <tr>
-              <td colSpan={columnCount} className="no-data">No tickets found matches this criteria.</td>
+              <td colSpan={columnCount} className="no-data">No tickets found matching this criteria.</td>
             </tr>
           ) : (
             tickets.map((ticket) => (
               <tr key={ticket.id}>
-                <td className="bold-text">#{ticket.id}</td>
-                <td>{ticket.subject}</td>
-                {BASE_COLUMNS.map((col) => (
-                  <td key={col.key}>{ticket[col.key] || '—'}</td>
-                ))}
+                <td className="bold-text">{ticket.ticketId}</td>
+                <td>{ticket.campaignName || '—'}</td>
+                {BASE_COLUMNS.map((col) => <td key={col.key}>{ticket[col.key] || '—'}</td>)}
+                <td>{ticket.operator || 'Unassigned'}</td>
+                {MID_COLUMNS.map((col) => <td key={col.key}>{ticket[col.key] || '—'}</td>)}
                 <td>
-                  {operatorEditable ? (
-                    <select
-                      className="status-select"
-                      value={ticket.operator || ''}
-                      onChange={(e) => onOperatorChange(ticket.id, e.target.value)}
-                    >
-                      <option value="">Unassigned</option>
-                      {OPERATORS.map((name) => (
-                        <option key={name} value={name}>
-                          {name}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    ticket.operator || 'Unassigned'
-                  )}
+                  <span className={`status-tag ${statusClass(ticket._raw?.status)}`}>
+                    {ticket.taskStatus}
+                  </span>
                 </td>
-                {MID_COLUMNS.map((col) => (
-                  <td key={col.key}>{ticket[col.key] || '—'}</td>
-                ))}
-                <td>{renderTaskStatus(ticket)}</td>
-                {showTimerColumn && <td>{renderTimer(ticket)}</td>}
-                {actionsAfterStatus && (
+                <td>{renderTimer(ticket)}</td>
+                {tailColumns.map((col) => <td key={col.key}>{ticket[col.key] || '—'}</td>)}
+                {showActions && (
                   <td>
-                    <StatusActionCell ticket={ticket} onStatusChange={onStatusChange} onOperatorChange={onOperatorChange} />
-                  </td>
-                )}
-                {tailColumns.map((col) => {
-                  if (col.key === 'traffickerComments' && config.traffickerCommentsEditable) {
-                    return (
-                      <td key={col.key}>
-                        <textarea
-                          className="inline-comment-input"
-                          value={ticket.traffickerComments || ''}
-                          onChange={(e) => onTraffickerCommentChange(ticket.id, e.target.value)}
-                        />
-                      </td>
-                    );
-                  }
-                  return <td key={col.key}>{ticket[col.key] || '—'}</td>;
-                })}
-                {actionsAtEnd && (
-                  <td>
-                    <StatusActionCell ticket={ticket} onStatusChange={onStatusChange} onOperatorChange={onOperatorChange} />
+                    <StatusActionCell
+                      ticket={ticket}
+                      mode={mode}
+                      busy={busyId === ticket.id}
+                      onStart={actions.onStart}
+                      onHold={actions.onHold}
+                      onResume={actions.onResume}
+                      onSubmit={actions.onSubmit}
+                      onPick={actions.onPick}
+                    />
                   </td>
                 )}
               </tr>
@@ -259,18 +152,12 @@ const TicketsTable = ({
 };
 
 TicketsTable.propTypes = {
-  tickets: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      subject: PropTypes.string.isRequired,
-      status: PropTypes.string.isRequired,
-    })
-  ),
+  tickets: PropTypes.arrayOf(PropTypes.object),
   loading: PropTypes.bool,
   activeStatus: PropTypes.string,
-  onStatusChange: PropTypes.func.isRequired,
-  onOperatorChange: PropTypes.func.isRequired,
-  onTraffickerCommentChange: PropTypes.func,
+  mode: PropTypes.oneOf(['mine', 'bucket']),
+  busyId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  actions: PropTypes.object,
 };
 
 export default TicketsTable;

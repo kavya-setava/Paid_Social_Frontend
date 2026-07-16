@@ -1,141 +1,170 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import socket from '../../../../socket';
+import { authApi, errMessage } from '../../../api/paidSocialApi';
+import { saveSession, getToken, getActiveRole, routeForRole } from '../../../api/session';
 import './Login.css';
 
+// Paid-Social login — real Google OAuth (see PaidSocial-API-Docs.md §2).
+//  1. "Sign in with Google" → GET /auth/google → redirect to Google.
+//  2. Google bounces back to /login?id_token=... which we POST to
+//     /auth/google/signin.
+//  3. If the account has >1 role the backend asks us to pick one; we show
+//     the role picker and re-call signin with { token, role }.
 const Login = () => {
     const navigate = useNavigate();
 
-    // State variables
     const [isLoading, setIsLoading] = useState(false);
     const [apiError, setApiError] = useState('');
-    const [testRole, setTestRole] = useState('Queue Manager'); // Temporary testing state
+    // When the account holds multiple roles the backend returns the list here.
+    const [pendingAuth, setPendingAuth] = useState(null); // { idToken, availableRoles }
 
-    // Auto-redirect if token already exists (Requirement: Session check)
+    const finishLogin = useCallback((data) => {
+        saveSession({ token: data.token, refreshToken: data.refreshToken, user: data.user });
+        try {
+            if (!socket.connected) socket.connect();
+            socket.emit('register', data.user?.id);
+        } catch (_) { /* socket is best-effort */ }
+        navigate(routeForRole(data.user?.activeRole?.name), { replace: true });
+    }, [navigate]);
+
+    // Already signed in? Skip straight to the dashboard.
     useEffect(() => {
-        const token = localStorage.getItem('authToken');
-        const userRole = localStorage.getItem('userRole');
-        if (token && userRole) {
-            redirectUserByRole(userRole);
+        if (getToken() && getActiveRole()) {
+            navigate(routeForRole(getActiveRole()), { replace: true });
         }
+    }, [navigate]);
+
+    // Handle the Google redirect (id_token / access_token in the URL).
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const idToken = params.get('id_token') || params.get('access_token');
+        if (!idToken) return;
+
+        (async () => {
+            setIsLoading(true);
+            setApiError('');
+            try {
+                const data = await authApi.signin(idToken);
+                // Clean the token out of the address bar.
+                window.history.replaceState({}, document.title, '/paid/login');
+
+                if (data?.needsRoleSelection) {
+                    setPendingAuth({ idToken, availableRoles: data.availableRoles || [] });
+                } else if (data?.success && data?.token) {
+                    finishLogin(data);
+                } else {
+                    setApiError(data?.message || 'Login failed. Please contact your administrator.');
+                }
+            } catch (err) {
+                setApiError(errMessage(err, 'Authentication failed. Please try again.'));
+                window.history.replaceState({}, document.title, '/paid/login');
+            } finally {
+                setIsLoading(false);
+            }
+        })();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Role-Based Navigation Routing
-    const redirectUserByRole = (role) => {
-        switch (role) {
-            case 'Queue Manager':
-                navigate('/paid/qm');
-                break;
-            case 'Agent':
-                navigate('/agent-dashboard');
-                break;
-            case 'Quality Checker':
-                navigate('/qc-dashboard');
-                break;
-            default:
-                navigate('/');
+    // Kick off the Google OAuth flow.
+    const handleGoogleLogin = async () => {
+        setApiError('');
+        setIsLoading(true);
+        try {
+            const data = await authApi.getGoogleUrl();
+            if (data?.authUrl) {
+                window.location.href = data.authUrl;
+            } else {
+                setApiError('Could not reach the identity provider. Please try again.');
+                setIsLoading(false);
+            }
+        } catch (err) {
+            setApiError(errMessage(err, 'The identity provider is unreachable.'));
+            setIsLoading(false);
         }
     };
 
-   // Handle Automatic Federated / Contextual Authentication
-    const handleAutoSignIn = async (e) => {
-        e.preventDefault();
+    // Re-sign in with a chosen role (multi-role accounts).
+    const handleRoleSelect = async (role) => {
         setApiError('');
         setIsLoading(true);
-
-        // FEATURE FLAG: Set to true for dropdown testing, set to false when backend API is ready
-        const useMockData = true; 
-
         try {
-            if (useMockData) {
-                // 1. TESTING MODE: Route using the dropdown selection
-                await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulating quick delay
-
-                if (testRole) {
-                    localStorage.setItem('authToken', 'mock-jwt-token-xyz');
-                    localStorage.setItem('userRole', testRole);
-                    redirectUserByRole(testRole);
-                } else {
-                    setApiError('Unable to identify your account role. Please contact your system administrator.');
-                }
-
+            const data = await authApi.signin(pendingAuth.idToken, role);
+            if (data?.success && data?.token) {
+                finishLogin(data);
             } else {
-                // 2. PRODUCTION MODE: Integrate with the backend API
-                const response = await fetch('https://api.paidsocial.internal/auth/session-resolve', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-
-                if (!response.ok) throw new Error('Backend authentication response failed.');
-
-                const data = await response.json(); 
-                
-                if (data.role && data.token) {
-                    localStorage.setItem('authToken', data.token);
-                    localStorage.setItem('userRole', data.role);
-                    redirectUserByRole(data.role);
-                } else {
-                    setApiError('Unable to identify your account role. Please contact your system administrator.');
-                }
+                setApiError(data?.message || 'Could not sign in with that role.');
             }
-        } catch (error) {
-            setApiError('Authentication failed. The identity provider is unreachable.');
+        } catch (err) {
+            setApiError(errMessage(err, 'Role sign-in failed.'));
         } finally {
             setIsLoading(false);
         }
     };
 
+    const prettyRole = (r) => {
+        const map = { QM: 'Queue Manager', AGENT: 'Agent', QC: 'Quality Checker' };
+        return map[String(r).toUpperCase()] || r;
+    };
+
     return (
         <div className="netflix-login-container">
-            {/* Background Overlay */}
             <div className="netflix-background-overlay"></div>
-        
-            {/* Top Header Logo */}
+
             <header className="netflix-header">
                 <h1 className="netflix-logo">paidSocial</h1>
             </header>
 
-            {/* Login Card wrapper */}
             <div className="netflix-login-card">
                 <h2>Ticket Management System</h2>
                 <p className="qms-tagline">
-                   Manage campaign tickets with intelligent routing, seamless collaboration, and real-time workflow visibility across every region.
+                    Manage campaign tickets with intelligent routing, seamless collaboration, and
+                    real-time workflow visibility across every region.
                 </p>
 
                 {apiError && <div className="error-alert-banner">{apiError}</div>}
 
-                <form onSubmit={handleAutoSignIn}>
-                    {/* Temporary Test Dropdown UI (Will be hidden/removed after API Integration) */}
-                    <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <label htmlFor="test-role-select" style={{ fontSize: '13px', color: '#8c8c8c', textAlign: 'left' }}>
-                            Select Test Profile Role:
-                        </label>
-                        <select 
-                            id="test-role-select"
-                            value={testRole} 
-                            onChange={(e) => setTestRole(e.target.value)}
+                {pendingAuth ? (
+                    /* ── Role picker (multi-role accounts) ── */
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <p style={{ fontSize: '13px', color: '#8c8c8c', margin: '0 0 4px' }}>
+                            You have more than one role. Choose how to sign in:
+                        </p>
+                        {pendingAuth.availableRoles.map((role) => (
+                            <button
+                                key={role}
+                                type="button"
+                                className="login-btn"
+                                disabled={isLoading}
+                                onClick={() => handleRoleSelect(role)}
+                                style={{ marginTop: 0 }}
+                            >
+                                {prettyRole(role)}
+                            </button>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={() => setPendingAuth(null)}
+                            disabled={isLoading}
                             style={{
-                                width: '100%',
-                                padding: '14px',
-                                backgroundColor: '#333333',
-                                color: '#ffffff',
-                                border: 'none',
-                                borderRadius: '4px',
-                                fontSize: '15px',
-                                outline: 'none',
-                                cursor: 'pointer'
+                                background: 'transparent', color: '#8c8c8c', border: 'none',
+                                cursor: 'pointer', fontSize: '13px', marginTop: '4px',
                             }}
                         >
-                            <option value="Queue Manager">Queue Manager</option>
-                            <option value="Agent">Agent</option>
-                            <option value="Quality Checker">Quality Checker</option>
-                        </select>
+                            ← Back
+                        </button>
                     </div>
-
-                    {/* Submit Action Button */}
-                    <button type="submit" className="login-btn" disabled={isLoading}>
-                        {isLoading ? <span className="spinner"></span> : 'Sign In'}
+                ) : (
+                    /* ── Google sign-in ── */
+                    <button
+                        type="button"
+                        className="login-btn"
+                        onClick={handleGoogleLogin}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? <span className="spinner"></span> : 'Sign in with Google'}
                     </button>
-                </form>
+                )}
 
                 <div className="login-footer-info">
                     <p className="signup-text">
