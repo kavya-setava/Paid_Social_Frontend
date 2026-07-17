@@ -10,7 +10,7 @@ const STATUS_TYPES = [
   { key: 'onHold', label: 'On Hold', color: '#6b7280' },
   { key: 'readyToQc', label: 'Ready to QC', color: '#8b5cf6' },
   { key: 'inQc', label: 'In QC', color: '#ec4899' },
-  { key: 'rejected', label: 'Rejected', color: '#c22c2c' },
+  // { key: 'rejected', label: 'Rejected', color: '#c22c2c' },
   { key: 'trafficked', label: 'Trafficked', color: '#10b981' },
   { key: 'rework', label: 'Rework', color: '#c41a04' },
 ];

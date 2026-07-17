@@ -19,7 +19,7 @@ const COLUMN_MAP = {
         { label: 'AD Flight Start Date and time', key: 'adFlightStart' },
         { label: 'AD Flight End Date and time', key: 'adFlightEnd' },
         { label: 'Operator', key: 'operator' },
-        { label: 'Operator Status', key: 'operatorStatus' },
+        // { label: 'Operator Status', key: 'operatorStatus' },
         { label: 'Operator Time Taken', key: 'operatorTimeTaken' },
         { label: 'Task Assigned Time', key: 'taskAssignedTime' },
         { label: 'Publish Date', key: 'publishDate' },
@@ -53,8 +53,8 @@ const COLUMN_MAP = {
         { label: 'Launching Prioritization', key: 'launchingPrioritization' },
         { label: 'Task Status', key: 'taskStatus' },
         { label: 'Socialite Notes', key: 'socialiteNotes' },
-        { label: 'Trafficker Comments', key: 'traffickerComments' },
-        { label: 'QC Thread', key: 'qcThread' }
+        // { label: 'Trafficker Comments', key: 'traffickerComments' },
+        // { label: 'QC Thread', key: 'qcThread' }
     ],
     rttAssigned: [
         { label: 'Task Received Time', key: 'taskReceivedTime' },
@@ -93,7 +93,7 @@ const COLUMN_MAP = {
         { label: 'AD Flight Start Date and time', key: 'adFlightStart' },
         { label: 'AD Flight End Date and time', key: 'adFlightEnd' },
         { label: 'Operator', key: 'operator' },
-        { label: 'Operator Status', key: 'operatorStatus' },
+        // { label: 'Operator Status', key: 'operatorStatus' },
         { label: 'Task Assigned Time', key: 'taskAssignedTime' },
         { label: 'Publish Date (Pst)', key: 'publishDate' },
         { label: 'Launching Prioritization', key: 'launchingPrioritization' },
@@ -116,7 +116,7 @@ const COLUMN_MAP = {
         { label: 'AD Flight Start Date and time', key: 'adFlightStart' },
         { label: 'AD Flight End Date and time', key: 'adFlightEnd' },
         { label: 'Operator', key: 'operator' },
-        { label: 'Operator Status', key: 'operatorStatus' },
+        // { label: 'Operator Status', key: 'operatorStatus' },
         { label: 'Task Assigned Time', key: 'taskAssignedTime' },
         { label: 'Publish Date (Pst)', key: 'publishDate' },
         { label: 'Launching Prioritization', key: 'launchingPrioritization' },
@@ -238,9 +238,9 @@ const COLUMN_MAP = {
         { label: 'Region', key: 'region' },
         { label: 'AD Flight Start Date and time', key: 'adFlightStart' },
         { label: 'AD Flight End Date and time', key: 'adFlightEnd' },
-        { label: 'Operator1', key: 'operator1' }, // Operator dropdown for assignment
-        { label: 'Operator2', key: 'operator2' }, // Operator dropdown for assignment
-        { label: 'Operator Status', key: 'operatorStatus' },
+        // { label: 'Operator1', key: 'operator1' }, // Operator dropdown for assignment
+        // { label: 'Operator2', key: 'operator2' }, // Operator dropdown for assignment
+        // { label: 'Operator Status', key: 'operatorStatus' },
         { label: 'Task Assigned Time', key: 'taskAssignedTime' },
         { label: 'Publish Date (Pst)', key: 'publishDate' },
         { label: 'Launching Prioritization', key: 'launchingPrioritization' },
