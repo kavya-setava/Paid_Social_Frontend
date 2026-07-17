@@ -53,11 +53,16 @@ export const agentApi = {
 
 /* ============================== QC ============================== */
 export const qcApi = {
-  // GET /tickets/qc/pool — common READY_TO_QC pool
+  // GET /tickets/qc/pool — unclaimed READY_TO_QC pool
   getPool: (params = {}) => http.get(`/tickets/qc/pool${qs(params)}`).then((r) => r.data),
+  // GET /tickets/qc/all — shared region-wide ALL board
+  getBoard: (params = {}) => http.get(`/tickets/qc/all${qs(params)}`).then((r) => r.data),
   // GET /tickets/qc/tickets — my QC tickets
   getMyTickets: (params = {}) => http.get(`/tickets/qc/tickets${qs(params)}`).then((r) => r.data),
+  // PATCH /tickets/:id/qc-pick — claim (ticket stays READY_TO_QC)
   pick: (id) => http.patch(`/tickets/${id}/qc-pick`, {}).then((r) => r.data),
+  // PATCH /tickets/:id/qc-start — begin review (READY_TO_QC → IN_QC, timer starts)
+  start: (id) => http.patch(`/tickets/${id}/qc-start`, {}).then((r) => r.data),
   approve: (id, note = "", qcObservations = "") =>
     http.patch(`/tickets/${id}/qc-approve`, { note, qcObservations }).then((r) => r.data),
   reject: (id, feedback, errorTags = [], qcObservations = "") =>

@@ -2,65 +2,67 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { STATUS } from '../../../utils/tickets';
 
-const ERROR_TAGS = ['COPY', 'DESIGN', 'LEGAL', 'TARGETING', 'OTHER'];
-
-// QC work actions gated by live status (PaidSocial-API-Docs.md §4/§8):
-//   READY_TO_QC  -> Pick
-//   IN_QC        -> Hold, Approve, Reject (reject requires feedback)
-//   ON_HOLD      -> Resume
-const QcActionCell = ({ ticket, busy = false, onPick, onApprove, onReject, onHold, onResume }) => {
+// QC work actions, gated by live status + ownership (PaidSocial-API-Docs §8):
+//   READY_TO_QC, unclaimed      -> Pick   (claim; stays READY_TO_QC)
+//   READY_TO_QC, claimed by me  -> Start QC (READY_TO_QC → IN_QC, timer starts)
+//   READY_TO_QC, claimed by other -> "Picked by <name>"
+//   IN_QC (mine)                -> Hold, Approve, Reject (reject needs a comment)
+//   ON_HOLD (mine, QC hold)     -> Resume
+const QcActionCell = ({ ticket, myId, busy = false, onPick, onStart, onApprove, onReject, onHold, onResume }) => {
   const status = ticket._raw?.status || ticket.status;
   const id = ticket.id;
+  const mine = myId && ticket.qcId && String(ticket.qcId) === String(myId);
 
   const [rejecting, setRejecting] = useState(false);
   const [feedback, setFeedback] = useState('');
-  const [tags, setTags] = useState([]);
-
-  const toggleTag = (t) =>
-    setTags((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
 
   const confirmReject = () => {
     if (!feedback.trim()) return;
-    onReject(id, feedback.trim(), tags);
+    onReject(id, feedback.trim());
     setRejecting(false);
     setFeedback('');
-    setTags([]);
   };
 
   if (status === STATUS.READY_TO_QC) {
-    return (
-      <button type="button" className="action-btn action-btn-primary" disabled={busy} onClick={() => onPick(id)}>
-        Pick
-      </button>
-    );
+    if (!ticket.qcId) {
+      return (
+        <button type="button" className="action-btn action-btn-primary" disabled={busy} onClick={() => onPick(id)}>
+          Pick
+        </button>
+      );
+    }
+    if (mine) {
+      return (
+        <button type="button" className="action-btn action-btn-primary" disabled={busy} onClick={() => onStart(id)}>
+          Start QC
+        </button>
+      );
+    }
+    return <span className="action-note">Picked by {ticket.qcName || 'another QC'}</span>;
   }
 
   if (status === STATUS.ON_HOLD) {
-    return (
-      <button type="button" className="action-btn action-btn-primary" disabled={busy} onClick={() => onResume(id)}>
-        Resume
-      </button>
-    );
+    // Only the QC who holds it (returns to IN_QC) may resume.
+    if (mine && ticket._raw?.holdReturnStatus === 'IN_QC') {
+      return (
+        <button type="button" className="action-btn action-btn-primary" disabled={busy} onClick={() => onResume(id)}>
+          Resume
+        </button>
+      );
+    }
+    return <span className="action-note">—</span>;
   }
 
-  if (status === STATUS.IN_QC) {
+  if (status === STATUS.IN_QC && mine) {
     if (rejecting) {
       return (
         <div className="action-group qc-reject-group">
           <textarea
             className="rejection-input"
-            placeholder="Rejection feedback (required)…"
+            placeholder="Rejection comment (required)…"
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
           />
-          <div className="qc-tag-row">
-            {ERROR_TAGS.map((t) => (
-              <label key={t} className={`qc-tag ${tags.includes(t) ? 'on' : ''}`}>
-                <input type="checkbox" checked={tags.includes(t)} onChange={() => toggleTag(t)} />
-                {t}
-              </label>
-            ))}
-          </div>
           <div className="action-group">
             <button
               type="button"
@@ -77,7 +79,6 @@ const QcActionCell = ({ ticket, busy = false, onPick, onApprove, onReject, onHol
         </div>
       );
     }
-
     return (
       <div className="action-group">
         <button type="button" className="action-btn action-btn-secondary" disabled={busy} onClick={() => onHold(id)}>
@@ -98,8 +99,10 @@ const QcActionCell = ({ ticket, busy = false, onPick, onApprove, onReject, onHol
 
 QcActionCell.propTypes = {
   ticket: PropTypes.object.isRequired,
+  myId: PropTypes.string,
   busy: PropTypes.bool,
   onPick: PropTypes.func,
+  onStart: PropTypes.func,
   onApprove: PropTypes.func,
   onReject: PropTypes.func,
   onHold: PropTypes.func,

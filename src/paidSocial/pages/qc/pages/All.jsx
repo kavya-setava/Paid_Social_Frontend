@@ -1,52 +1,37 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import StatusCards from '../components/StatusCards';
 import TicketsTable from '../components/TicketsTable';
-import { qcApi, ticketApi, errMessage } from '../../../api/paidSocialApi';
+import { qcApi, errMessage } from '../../../api/paidSocialApi';
 import { normalizeList, STATUS } from '../../../utils/tickets';
+import { getUser } from '../../../api/session';
 import { toastSuccess, toastError } from '../../../utils/toast';
 import usePaidSocket from '../../../hooks/usePaidSocket';
 import './All.css';
 
-// QC region overview. There is no single "all QC tickets" endpoint, so we
-// merge the common pool, my QC tickets and the region rework bucket, dedupe
-// by id, and filter client-side by the selected tab.
-const STATUS_BY_TAB = {
-    readyToQc: STATUS.READY_TO_QC,
-    inQc: STATUS.IN_QC,
-    rejected: STATUS.REJECTED,
-    trafficked: STATUS.TRAFFICKED,
-};
+// Shared QC board — visible to every QC. Shows all region tickets in a QC stage
+// (Ready to QC / In QC / On Hold by a QC / Rejected / Trafficked) for pickup and
+// tracking. A QC picks a Ready-to-QC ticket here → it moves to their My Dashboard.
+const isQcHold = (t) => t._raw?.status === STATUS.ON_HOLD && t._raw?.holdReturnStatus === 'IN_QC';
+const isQcRelevant = (t) =>
+    [STATUS.READY_TO_QC, STATUS.IN_QC, STATUS.REJECTED, STATUS.TRAFFICKED].includes(t._raw?.status) ||
+    isQcHold(t);
 
 const All = () => {
     const [activeStatus, setActiveStatus] = useState('all');
-    const [allTickets, setAllTickets] = useState([]);
+    const [board, setBoard] = useState([]);
     const [loading, setLoading] = useState(false);
     const [busyId, setBusyId] = useState(null);
+
+    const myId = getUser()?.id || null;
 
     const load = useCallback(async () => {
         setLoading(true);
         try {
-            const [pool, mine, rework] = await Promise.all([
-                qcApi.getPool().catch(() => ({})),
-                qcApi.getMyTickets().catch(() => ({})),
-                ticketApi.getRework('all').catch(() => ({})),
-            ]);
-            const merged = [
-                ...(pool?.data || []),
-                ...(mine?.data || []),
-                ...(rework?.data || []),
-            ];
-            const seen = new Set();
-            const unique = merged.filter((t) => {
-                const id = t._id;
-                if (seen.has(id)) return false;
-                seen.add(id);
-                return true;
-            });
-            setAllTickets(normalizeList(unique));
+            const res = await qcApi.getBoard({ limit: 200 });
+            setBoard(normalizeList(res?.data || []).filter(isQcRelevant));
         } catch (err) {
-            toastError(errMessage(err, 'Failed to load tickets'));
-            setAllTickets([]);
+            toastError(errMessage(err, 'Failed to load the QC board'));
+            setBoard([]);
         } finally {
             setLoading(false);
         }
@@ -70,25 +55,34 @@ const All = () => {
     };
 
     const actions = {
-        onPick: run((id) => qcApi.pick(id), 'Picked — QC timer running'),
+        onPick: run((id) => qcApi.pick(id), 'Picked — moved to your Ready to QC'),
+        onStart: run((id) => qcApi.start(id), 'QC started — timer running'),
         onApprove: run((id) => qcApi.approve(id), 'Approved & trafficked'),
-        onReject: run((id, feedback, tags) => qcApi.reject(id, feedback, tags), 'Sent back for rework'),
-        onHold: run((id) => qcApi.hold(id, 'HOLD'), 'On hold'),
+        onReject: run((id, feedback) => qcApi.reject(id, feedback), 'Sent back for rework'),
+        onHold: run((id) => qcApi.hold(id, 'HOLD'), 'On hold — timer paused'),
         onResume: run((id) => qcApi.resume(id), 'Resumed — QC timer running'),
     };
 
     const counts = {
-        all: allTickets.length,
-        readyToQc: allTickets.filter((t) => t._raw?.status === STATUS.READY_TO_QC).length,
-        inQc: allTickets.filter((t) => t._raw?.status === STATUS.IN_QC).length,
-        rejected: allTickets.filter((t) => t._raw?.status === STATUS.REJECTED).length,
-        trafficked: allTickets.filter((t) => t._raw?.status === STATUS.TRAFFICKED).length,
+        all: board.length,
+        readyToQc: board.filter((t) => t._raw?.status === STATUS.READY_TO_QC).length,
+        inQc: board.filter((t) => t._raw?.status === STATUS.IN_QC).length,
+        onHold: board.filter(isQcHold).length,
+        rejected: board.filter((t) => t._raw?.status === STATUS.REJECTED).length,
+        trafficked: board.filter((t) => t._raw?.status === STATUS.TRAFFICKED).length,
     };
 
     const visible =
         activeStatus === 'all'
-            ? allTickets
-            : allTickets.filter((t) => t._raw?.status === STATUS_BY_TAB[activeStatus]);
+            ? board
+            : activeStatus === 'onHold'
+                ? board.filter(isQcHold)
+                : board.filter((t) => t._raw?.status === {
+                    readyToQc: STATUS.READY_TO_QC,
+                    inQc: STATUS.IN_QC,
+                    rejected: STATUS.REJECTED,
+                    trafficked: STATUS.TRAFFICKED,
+                }[activeStatus]);
 
     return (
         <div className="all-page">
@@ -103,6 +97,7 @@ const All = () => {
                 loading={loading}
                 showActions
                 busyId={busyId}
+                myId={myId}
                 actions={actions}
             />
         </div>

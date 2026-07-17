@@ -38,6 +38,7 @@ const TicketsTable = ({
     loading = false,
     showActions = false,
     busyId = null,
+    myId = null,
     actions = {},
 }) => {
     const [, setNow] = useState(() => Date.now());
@@ -99,8 +100,10 @@ const TicketsTable = ({
                                     <td>
                                         <QcActionCell
                                             ticket={ticket}
+                                            myId={myId}
                                             busy={busyId === ticket.id}
                                             onPick={actions.onPick}
+                                            onStart={actions.onStart}
                                             onApprove={actions.onApprove}
                                             onReject={actions.onReject}
                                             onHold={actions.onHold}
@@ -122,6 +125,7 @@ TicketsTable.propTypes = {
     loading: PropTypes.bool,
     showActions: PropTypes.bool,
     busyId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    myId: PropTypes.string,
     actions: PropTypes.object,
 };
 

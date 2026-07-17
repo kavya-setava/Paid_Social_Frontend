@@ -7,6 +7,7 @@ const STATUS_TYPES_ALL = [
     { key: 'all', label: 'All', color: '#64748b' },
     { key: 'readyToQc', label: 'Ready to QC', color: '#8b5cf6' },
     { key: 'inQc', label: 'In QC', color: '#ec4899' },
+    { key: 'onHold', label: 'On Hold', color: '#6b7280' },
     { key: 'rejected', label: 'Rejected', color: '#dc2626' },
     { key: 'trafficked', label: 'Trafficked', color: '#10b981' },
 ];
@@ -14,6 +15,7 @@ const STATUS_TYPES_ALL = [
 const STATUS_TYPES_MY_DASHBOARD = [
     { key: 'readyToQc', label: 'Ready to QC', color: '#8b5cf6' },
     { key: 'inQc', label: 'In QC', color: '#ec4899' },
+    { key: 'onHold', label: 'On Hold', color: '#6b7280' },
     { key: 'rejected', label: 'Rejected', color: '#dc2626' },
     { key: 'trafficked', label: 'Trafficked', color: '#10b981' },
 ];

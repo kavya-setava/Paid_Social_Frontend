@@ -1,18 +1,28 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import StatusCards from '../components/StatusCards';
 import TicketsTable from '../components/TicketsTable';
-import { qcApi, ticketApi, errMessage } from '../../../api/paidSocialApi';
+import { qcApi, errMessage } from '../../../api/paidSocialApi';
 import { normalizeList } from '../../../utils/tickets';
+import { getUser } from '../../../api/session';
 import { toastSuccess, toastError } from '../../../utils/toast';
 import usePaidSocket from '../../../hooks/usePaidSocket';
 import './MyDashboard.css';
 
-// QC working queue. Each tab maps to a real endpoint:
-//   readyToQc -> common pool (pickable)
-//   inQc      -> my IN_QC / ON_HOLD tickets (approve / reject / hold / resume)
-//   rejected  -> tickets I previously rejected (rework history, read-only)
-//   trafficked-> my approved tickets (read-only)
-const ACTION_TABS = ['readyToQc', 'inQc'];
+// The QC's individual dashboard — only tickets they claimed. Each tab maps to
+// my QC tickets (current.qc = me) at a given status:
+//   readyToQc -> claimed, not started yet  -> "Start QC" (begins timer, → In QC)
+//   inQc      -> under review              -> Hold / Approve / Reject
+//   onHold    -> I paused it              -> Resume
+//   rejected  -> I rejected (read-only)
+//   trafficked-> I approved (read-only)
+const TAB_STATUS = {
+    readyToQc: 'READY_TO_QC',
+    inQc: 'IN_QC',
+    onHold: 'ON_HOLD',
+    rejected: 'REJECTED',
+    trafficked: 'TRAFFICKED',
+};
+const ACTION_TABS = ['readyToQc', 'inQc', 'onHold'];
 
 const MyDashboard = () => {
     const [activeStatus, setActiveStatus] = useState('readyToQc');
@@ -21,18 +31,14 @@ const MyDashboard = () => {
     const [counts, setCounts] = useState({});
     const [busyId, setBusyId] = useState(null);
 
+    const myId = getUser()?.id || null;
     const statusRef = useRef(activeStatus);
     statusRef.current = activeStatus;
 
     const loadList = useCallback(async () => {
         setLoading(true);
         try {
-            const tab = statusRef.current;
-            let res;
-            if (tab === 'readyToQc') res = await qcApi.getPool();
-            else if (tab === 'inQc') res = await qcApi.getMyTickets({ status: 'IN_QC,ON_HOLD' });
-            else if (tab === 'rejected') res = await ticketApi.getRework('history');
-            else res = await qcApi.getMyTickets({ status: 'TRAFFICKED' });
+            const res = await qcApi.getMyTickets({ status: TAB_STATUS[statusRef.current] });
             setTickets(normalizeList(res?.data || []));
         } catch (err) {
             toastError(errMessage(err, 'Failed to load tickets'));
@@ -44,16 +50,14 @@ const MyDashboard = () => {
 
     const loadCounts = useCallback(async () => {
         try {
-            const [pool, mine, history] = await Promise.all([
-                qcApi.getPool({ limit: 1 }).catch(() => ({})),
-                qcApi.getMyTickets().catch(() => ({})),
-                ticketApi.getRework('history').catch(() => ({})),
-            ]);
+            const res = await qcApi.getMyTickets(); // counts scoped to current.qc = me
+            const c = res?.counts || {};
             setCounts({
-                readyToQc: pool?.total ?? 0,
-                inQc: (mine?.counts?.IN_QC ?? 0) + (mine?.counts?.ON_HOLD ?? 0),
-                rejected: history?.total ?? (history?.data?.length ?? 0),
-                trafficked: mine?.counts?.TRAFFICKED ?? 0,
+                readyToQc: c.READY_TO_QC ?? 0,
+                inQc: c.IN_QC ?? 0,
+                onHold: c.ON_HOLD ?? 0,
+                rejected: c.REJECTED ?? 0,
+                trafficked: c.TRAFFICKED ?? 0,
             });
         } catch (_) { /* counts are best-effort */ }
     }, []);
@@ -78,10 +82,10 @@ const MyDashboard = () => {
     };
 
     const actions = {
-        onPick: run((id) => qcApi.pick(id), 'Picked — QC timer running'),
+        onStart: run((id) => qcApi.start(id), 'QC started — timer running'),
         onApprove: run((id) => qcApi.approve(id), 'Approved & trafficked'),
-        onReject: run((id, feedback, tags) => qcApi.reject(id, feedback, tags), 'Sent back for rework'),
-        onHold: run((id) => qcApi.hold(id, 'HOLD'), 'On hold'),
+        onReject: run((id, feedback) => qcApi.reject(id, feedback), 'Sent back for rework'),
+        onHold: run((id) => qcApi.hold(id, 'HOLD'), 'On hold — timer paused'),
         onResume: run((id) => qcApi.resume(id), 'Resumed — QC timer running'),
     };
 
@@ -98,6 +102,7 @@ const MyDashboard = () => {
                 loading={loading}
                 showActions={ACTION_TABS.includes(activeStatus)}
                 busyId={busyId}
+                myId={myId}
                 actions={actions}
             />
         </div>

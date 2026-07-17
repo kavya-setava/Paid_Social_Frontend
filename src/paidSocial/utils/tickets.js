@@ -151,6 +151,7 @@ export const normalizeTicket = (t = {}) => {
       time: t.time || {},
       current,
       timeline: t.timeline || {},
+      holdReturnStatus: t.holdReturnStatus || null, // IN_PROGRESS = agent hold, IN_QC = QC hold
     },
     _ticket: t,
   };
