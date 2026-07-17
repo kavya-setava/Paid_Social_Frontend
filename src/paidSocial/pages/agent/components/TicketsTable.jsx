@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
+import { Info } from 'lucide-react';
 import StatusActionCell from './StatusActionCell';
+import WorkHistoryModal from '../../../components/WorkHistoryModal';
 import { STATUS, statusClass, liveSeconds, fmtDuration, isTimerRunning } from '../../../utils/tickets';
 import './TicketsTable.css';
 
@@ -68,6 +70,10 @@ const TicketsTable = ({
   const tailKeys = TAB_TAIL[activeStatus] || FULL_TAIL;
   const tailColumns = tailKeys.map((k) => TAIL_COLUMN_DEFS[k]);
   const showActions = ACTION_TABS.includes(activeStatus) || mode === 'bucket';
+  // Per-person history icons on Operator / QC'er — shown in the rework views.
+  const showHistoryIcons = mode === 'bucket' || activeStatus === 'rework';
+
+  const [history, setHistory] = useState(null); // { ticketId, role, title }
 
   // Tick every second so live timers re-render.
   const [, setNow] = useState(() => Date.now());
@@ -93,6 +99,27 @@ const TicketsTable = ({
     }
     return ticket[key] || '—';
   };
+
+  // A name cell with an "i" icon opening the per-person work-time history.
+  const peopleCell = (ticket, value, role) => (
+    <span className="wh-cell">
+      {value || '—'}
+      {showHistoryIcons && (
+        <button
+          type="button"
+          className="wh-info-btn"
+          title={`View ${role === 'AGENT' ? 'agent' : 'QC'} time history`}
+          onClick={() => setHistory({
+            ticketId: ticket.id,
+            role,
+            title: `${role === 'AGENT' ? 'Agent' : 'QC'} history — ${ticket.ticketId || ''}`,
+          })}
+        >
+          <Info size={12} />
+        </button>
+      )}
+    </span>
+  );
 
   const renderTimer = (ticket) => {
     const raw = ticket._ticket;
@@ -132,7 +159,11 @@ const TicketsTable = ({
                 <td className="bold-text">{ticket.ticketId}</td>
                 <td>{ticket.campaignName || '—'}</td>
                 {BASE_COLUMNS.map((col) => <td key={col.key}>{renderValue(ticket, col.key)}</td>)}
-                <td>{ticket.operator || 'Unassigned'}</td>
+                <td>
+                  {showHistoryIcons
+                    ? peopleCell(ticket, ticket.operator || 'Unassigned', 'AGENT')
+                    : (ticket.operator || 'Unassigned')}
+                </td>
                 {MID_COLUMNS.map((col) => <td key={col.key}>{ticket[col.key] || '—'}</td>)}
                 <td>
                   <span className={`status-tag ${statusClass(ticket._raw?.status)}`}>
@@ -140,7 +171,13 @@ const TicketsTable = ({
                   </span>
                 </td>
                 <td>{renderTimer(ticket)}</td>
-                {tailColumns.map((col) => <td key={col.key}>{ticket[col.key] || '—'}</td>)}
+                {tailColumns.map((col) => (
+                  <td key={col.key}>
+                    {col.key === 'qcer' && showHistoryIcons
+                      ? peopleCell(ticket, ticket.qcer, 'QC')
+                      : (ticket[col.key] || '—')}
+                  </td>
+                ))}
                 {showActions && (
                   <td>
                     <StatusActionCell
@@ -160,6 +197,15 @@ const TicketsTable = ({
           )}
         </tbody>
       </table>
+
+      {history && (
+        <WorkHistoryModal
+          ticketId={history.ticketId}
+          role={history.role}
+          title={history.title}
+          onClose={() => setHistory(null)}
+        />
+      )}
     </div>
   );
 };
