@@ -254,6 +254,32 @@ const COLUMN_MAP = {
         { label: 'QC Status', key: 'qcStatus' },
         { label: 'QC Comments', key: 'qcComments' }
     ],
+    // CI-completed tickets (normal flow) — same columns as Trafficked.
+    completed: [
+        { label: 'Task Received Time', key: 'taskReceivedTime' },
+        { label: 'Marketing Campaign', key: 'marketingCampaign' },
+        { label: 'Campaign Name', key: 'campaignName' },
+        { label: 'AdSet Name', key: 'adSetName' },
+        { label: 'Ad Name', key: 'adName' },
+        { label: 'High-Visibility Titles', key: 'highVisibilityTitles' },
+        { label: 'Ad- Tech', key: 'adTech' },
+        { label: 'Task Type', key: 'taskType' },
+        { label: 'Page', key: 'page' },
+        { label: 'Platform', key: 'platform' },
+        { label: 'Region', key: 'region' },
+        { label: 'AD Flight Start Date and time', key: 'adFlightStart' },
+        { label: 'AD Flight End Date and time', key: 'adFlightEnd' },
+        { label: 'Operator', key: 'operator' },
+        { label: 'Task Assigned Time', key: 'taskAssignedTime' },
+        { label: 'Publish Date (Pst)', key: 'publishDate' },
+        { label: 'Launching Prioritization', key: 'launchingPrioritization' },
+        { label: 'Task Status', key: 'taskStatus' },
+        { label: 'Socialite Notes', key: 'socialiteNotes' },
+        { label: 'Trafficker Comments', key: 'traffickerComments' },
+        { label: 'QC Thread', key: 'qcThread' },
+        { label: "QC'er", key: 'qcer' },
+        { label: 'QC Status', key: 'qcStatus' },
+    ],
     // Tickets a QC put on hold (holdReturn = IN_QC).
     qcOnHold: [
         { label: 'Task Received Time', key: 'taskReceivedTime' },

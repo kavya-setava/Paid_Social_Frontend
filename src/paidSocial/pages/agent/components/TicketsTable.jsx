@@ -54,6 +54,7 @@ const TAB_TAIL = {
   rejected: FULL_TAIL,
   rework: FULL_TAIL,
   trafficked: FULL_TAIL,
+  completed: FULL_TAIL,
 };
 
 // Tabs where the agent has actionable work.
@@ -66,6 +67,9 @@ const TicketsTable = ({
   mode = 'mine',
   busyId = null,
   actions = {},
+  agents = [],
+  transferringId = null,
+  onTransfer = () => { },
 }) => {
   const tailKeys = TAB_TAIL[activeStatus] || FULL_TAIL;
   const tailColumns = tailKeys.map((k) => TAIL_COLUMN_DEFS[k]);
@@ -160,7 +164,23 @@ const TicketsTable = ({
                 <td>{ticket.campaignName || '—'}</td>
                 {BASE_COLUMNS.map((col) => <td key={col.key}>{renderValue(ticket, col.key)}</td>)}
                 <td>
-                  {showHistoryIcons
+                  {activeStatus === 'rttAssigned' ? (
+                    <select
+                      className="status-select"
+                      value={ticket.agentId || ''}
+                      disabled={transferringId === ticket.id}
+                      onChange={(e) => onTransfer(ticket.id, e.target.value)}
+                    >
+                      <option value="">
+                        {transferringId === ticket.id ? 'Transferring…' : 'Transfer to…'}
+                      </option>
+                      {agents.map((a) => (
+                        <option key={a._id} value={a._id} disabled={a.isOnBreak}>
+                          {a.name}{a.isOnBreak ? ' (on break)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  ) : showHistoryIcons
                     ? peopleCell(ticket, ticket.operator || 'Unassigned', 'AGENT')
                     : (ticket.operator || 'Unassigned')}
                 </td>
@@ -217,6 +237,9 @@ TicketsTable.propTypes = {
   mode: PropTypes.oneOf(['mine', 'bucket']),
   busyId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   actions: PropTypes.object,
+  agents: PropTypes.arrayOf(PropTypes.object),
+  transferringId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  onTransfer: PropTypes.func,
 };
 
 export default TicketsTable;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Search } from 'lucide-react';
+import { Search, Zap } from 'lucide-react';
 import StatusCards from '../components/StatusCards';
 import TicketsTable from '../components/TicketsTable';
 import { qmApi, errMessage } from '../../../api/paidSocialApi';
@@ -17,6 +17,7 @@ const Tickets = () => {
     const [search, setSearch] = useState('');
     const [searchInput, setSearchInput] = useState('');
     const [assigningId, setAssigningId] = useState(null);
+    const [autoAssigning, setAutoAssigning] = useState(false);
 
     const activeStatusRef = useRef(activeStatus);
     activeStatusRef.current = activeStatus;
@@ -43,16 +44,20 @@ const Tickets = () => {
             // RTT → unassigned/assigned, and ON_HOLD → agent-held/QC-held.
             const base = mapCounts(res?.counts || {});
             try {
-                const [un, holdAgent, holdQc] = await Promise.all([
+                const [un, holdAgent, holdQc, completed] = await Promise.all([
                     qmApi.getTickets({ status: 'RTT', assigned: 'false', limit: 1 }),
                     qmApi.getTickets({ status: 'ON_HOLD', holdReturn: 'IN_PROGRESS', limit: 1 }),
                     qmApi.getTickets({ status: 'ON_HOLD', holdReturn: 'IN_QC', limit: 1 }),
+                    qmApi.getTickets({ status: 'TRAFFICKED', ciCompleted: 'true', limit: 1 }),
                 ]);
                 const unassigned = un?.total ?? 0;
                 base.rttUnassigned = unassigned;
                 base.rttAssigned = Math.max(0, (res?.counts?.RTT ?? 0) - unassigned);
                 base.onHold = holdAgent?.total ?? 0;
                 base.qcOnHold = holdQc?.total ?? 0;
+                const completedCount = completed?.total ?? 0;
+                base.completed = completedCount;
+                base.trafficked = Math.max(0, (res?.counts?.TRAFFICKED ?? 0) - completedCount);
             } catch (_) { /* keep combined fallback */ }
             setCounts(base);
         } catch (err) {
@@ -89,6 +94,23 @@ const Tickets = () => {
         setSearch(searchInput.trim());
     };
 
+    const handleAutoAssign = async () => {
+        setAutoAssigning(true);
+        try {
+            const res = await qmApi.autoAssign();
+            if (res?.success) {
+                toastSuccess(res.message || 'Tickets auto-assigned');
+                fetchTickets();
+            } else {
+                toastError(res?.message || 'Auto-assign failed');
+            }
+        } catch (err) {
+            toastError(errMessage(err, 'Auto-assign failed'));
+        } finally {
+            setAutoAssigning(false);
+        }
+    };
+
     return (
         <div className="tickets-page">
             <StatusCards
@@ -96,6 +118,20 @@ const Tickets = () => {
                 activeStatus={activeStatus}
                 onStatusSelect={setActiveStatus}
             />
+
+            {activeStatus === 'rttUnassigned' && (
+                <div className="ps-toolbar">
+                    <button
+                        type="button"
+                        className="ps-auto-assign-btn"
+                        disabled={autoAssigning}
+                        onClick={handleAutoAssign}
+                    >
+                        <Zap size={15} />
+                        {autoAssigning ? 'Auto assigning…' : 'Auto Assign'}
+                    </button>
+                </div>
+            )}
 
             <form className="ps-search-bar" onSubmit={submitSearch}>
                 <Search size={16} />

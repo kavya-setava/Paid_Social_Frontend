@@ -83,13 +83,17 @@ const All = () => {
         }
     };
 
+    const isCompleted = (t) => t._raw?.status === STATUS.TRAFFICKED && t._raw?.ciStatus === 'CI_COMPLETED';
+    const isTrafficked = (t) => t._raw?.status === STATUS.TRAFFICKED && !isCompleted(t);
+
     const counts = {
         all: board.length,
         readyToQc: board.filter((t) => t._raw?.status === STATUS.READY_TO_QC).length,
         inQc: board.filter((t) => t._raw?.status === STATUS.IN_QC).length,
         onHold: board.filter(isQcHold).length,
         rejected: board.filter((t) => t._raw?.status === STATUS.REJECTED).length,
-        trafficked: board.filter((t) => t._raw?.status === STATUS.TRAFFICKED).length,
+        trafficked: board.filter(isTrafficked).length,
+        completed: board.filter(isCompleted).length,
     };
 
     const visible =
@@ -97,12 +101,15 @@ const All = () => {
             ? board
             : activeStatus === 'onHold'
                 ? board.filter(isQcHold)
-                : board.filter((t) => t._raw?.status === {
-                    readyToQc: STATUS.READY_TO_QC,
-                    inQc: STATUS.IN_QC,
-                    rejected: STATUS.REJECTED,
-                    trafficked: STATUS.TRAFFICKED,
-                }[activeStatus]);
+                : activeStatus === 'trafficked'
+                    ? board.filter(isTrafficked)
+                    : activeStatus === 'completed'
+                        ? board.filter(isCompleted)
+                        : board.filter((t) => t._raw?.status === {
+                            readyToQc: STATUS.READY_TO_QC,
+                            inQc: STATUS.IN_QC,
+                            rejected: STATUS.REJECTED,
+                        }[activeStatus]);
 
     return (
         <div className="all-page">

@@ -13,6 +13,7 @@ const STATUS_TYPES = [
   { key: 'inQc', label: 'In QC', color: '#ec4899' },
   // { key: 'rejected', label: 'Rejected', color: '#c22c2c' },
   { key: 'trafficked', label: 'Trafficked', color: '#10b981' },
+  { key: 'completed', label: 'Completed', color: '#22c55e' },
   { key: 'rework', label: 'Rework', color: '#c41a04' },
 ];
 

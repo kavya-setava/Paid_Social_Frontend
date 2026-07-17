@@ -10,6 +10,7 @@ const STATUS_TYPES_ALL = [
     { key: 'onHold', label: 'On Hold', color: '#6b7280' },
     { key: 'rejected', label: 'Rejected', color: '#dc2626' },
     { key: 'trafficked', label: 'Trafficked', color: '#10b981' },
+    { key: 'completed', label: 'Completed', color: '#22c55e' },
 ];
 
 const STATUS_TYPES_MY_DASHBOARD = [
@@ -18,6 +19,7 @@ const STATUS_TYPES_MY_DASHBOARD = [
     { key: 'onHold', label: 'On Hold', color: '#6b7280' },
     { key: 'rejected', label: 'Rejected', color: '#dc2626' },
     { key: 'trafficked', label: 'Trafficked', color: '#10b981' },
+    { key: 'completed', label: 'Completed', color: '#22c55e' },
 ];
 
 const StatusCards = ({

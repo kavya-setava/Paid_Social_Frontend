@@ -37,6 +37,8 @@ export const qmApi = {
   // PATCH /tickets/:id/assign { agentId, note }
   assign: (id, agentId, note = "") =>
     http.patch(`/tickets/${id}/assign`, { agentId, note }).then((r) => r.data),
+  // POST /tickets/auto-assign — group + distribute all RTT-unassigned to agents
+  autoAssign: () => http.post("/tickets/auto-assign", {}).then((r) => r.data),
 };
 
 /* ============================== AGENT ============================== */
@@ -49,6 +51,11 @@ export const agentApi = {
   resume: (id, note = "") => http.patch(`/tickets/${id}/resume`, { note }).then((r) => r.data),
   submit: (id, note = "") => http.patch(`/tickets/${id}/submit`, { note }).then((r) => r.data),
   pickRework: (id) => http.patch(`/tickets/rework/${id}/pick`, {}).then((r) => r.data),
+  // Transfer my RTT ticket to another agent in the region.
+  transfer: (id, agentId, note = "") =>
+    http.patch(`/tickets/${id}/agent-transfer`, { agentId, note }).then((r) => r.data),
+  // GET /tickets/operators?role=AGENT — the region's agent roster
+  getAgents: () => http.get("/tickets/operators?role=AGENT").then((r) => r.data),
 };
 
 /* ============================== QC ============================== */
@@ -77,6 +84,25 @@ export const qcApi = {
   hold: (id, type = "HOLD", note = "") =>
     http.patch(`/tickets/${id}/hold`, { type, note }).then((r) => r.data),
   resume: (id, note = "") => http.patch(`/tickets/${id}/resume`, { note }).then((r) => r.data),
+};
+
+/* ========================= CALENDAR INVITE ========================= */
+export const calendarApi = {
+  // GET /tickets/ci ?status ?search ?page ?limit — role-scoped CI board + counts
+  getList: (params = {}) => http.get(`/tickets/ci${qs(params)}`).then((r) => r.data),
+  // PATCH /tickets/:id/ci-status { ciStatus } — agent/QC transitions
+  setStatus: (id, ciStatus) =>
+    http.patch(`/tickets/${id}/ci-status`, { ciStatus }).then((r) => r.data),
+  // PATCH /tickets/:id/ci-assign-agent { agentId } — QM assigns an agent
+  assignAgent: (id, agentId) =>
+    http.patch(`/tickets/${id}/ci-assign-agent`, { agentId }).then((r) => r.data),
+  // PATCH /tickets/:id/ci-qc-pick — QC self-picks from the pool
+  qcPick: (id) => http.patch(`/tickets/${id}/ci-qc-pick`, {}).then((r) => r.data),
+  // PATCH /tickets/:id/ci-qc-assign { qcId } — QC assigns to another QC
+  qcAssign: (id, qcId) =>
+    http.patch(`/tickets/${id}/ci-qc-assign`, { qcId }).then((r) => r.data),
+  // POST /tickets/ci/run — QM manual promotion sweep (testing)
+  runPromotion: () => http.post('/tickets/ci/run', {}).then((r) => r.data),
 };
 
 /* ============================== SHARED ============================== */

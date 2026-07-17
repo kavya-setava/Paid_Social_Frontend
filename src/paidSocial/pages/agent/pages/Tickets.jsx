@@ -17,7 +17,8 @@ const AGENT_TAB_QUERY = {
   inQc: { status: 'IN_QC' },
   rejected: { status: 'REJECTED' },
   rework: { status: 'REJECTED' },
-  trafficked: { status: 'TRAFFICKED' },
+  trafficked: { status: 'TRAFFICKED', ciCompleted: 'false' },
+  completed: { status: 'TRAFFICKED', ciCompleted: 'true' },
 };
 
 const Tickets = () => {
@@ -26,9 +27,16 @@ const Tickets = () => {
   const [loading, setLoading] = useState(false);
   const [counts, setCounts] = useState({});
   const [busyId, setBusyId] = useState(null);
+  const [agents, setAgents] = useState([]);
+  const [transferringId, setTransferringId] = useState(null);
 
   const statusRef = useRef(activeStatus);
   statusRef.current = activeStatus;
+
+  // Region agent roster for the RTT-Assigned transfer dropdown.
+  useEffect(() => {
+    agentApi.getAgents().then((r) => setAgents(r?.data || [])).catch(() => setAgents([]));
+  }, []);
 
   const fetchTickets = useCallback(async () => {
     setLoading(true);
@@ -39,12 +47,16 @@ const Tickets = () => {
       // ON_HOLD count from the envelope mixes agent + QC holds; split them.
       const base = mapCounts(res?.counts || {});
       try {
-        const [holdAgent, holdQc] = await Promise.all([
+        const [holdAgent, holdQc, completed] = await Promise.all([
           agentApi.getTickets({ status: 'ON_HOLD', holdReturn: 'IN_PROGRESS', limit: 1 }),
           agentApi.getTickets({ status: 'ON_HOLD', holdReturn: 'IN_QC', limit: 1 }),
+          agentApi.getTickets({ status: 'TRAFFICKED', ciCompleted: 'true', limit: 1 }),
         ]);
         base.onHold = holdAgent?.total ?? 0;
         base.qcOnHold = holdQc?.total ?? 0;
+        const completedCount = completed?.total ?? 0;
+        base.completed = completedCount;
+        base.trafficked = Math.max(0, (res?.counts?.TRAFFICKED ?? 0) - completedCount);
       } catch (_) { /* keep combined fallback */ }
       setCounts(base);
     } catch (err) {
@@ -80,6 +92,20 @@ const Tickets = () => {
     onSubmit: run((id, note) => agentApi.submit(id, note), 'Submitted to QC'),
   };
 
+  const handleTransfer = async (ticketId, agentId) => {
+    if (!agentId) return;
+    setTransferringId(ticketId);
+    try {
+      await agentApi.transfer(ticketId, agentId);
+      toastSuccess('Ticket transferred to agent');
+      fetchTickets();
+    } catch (err) {
+      toastError(errMessage(err, 'Could not transfer ticket'));
+    } finally {
+      setTransferringId(null);
+    }
+  };
+
   return (
     <div className="tickets-page">
       <StatusCards counts={counts} activeStatus={activeStatus} onStatusSelect={setActiveStatus} />
@@ -90,6 +116,9 @@ const Tickets = () => {
         mode="mine"
         busyId={busyId}
         actions={actions}
+        agents={agents}
+        transferringId={transferringId}
+        onTransfer={handleTransfer}
       />
     </div>
   );

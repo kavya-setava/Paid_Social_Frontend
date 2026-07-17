@@ -5,6 +5,39 @@
   animation: fadeIn 0.25s ease-out;
 }
 
+/* Auto Assign toolbar (RTT Unassigned only) */
+.ps-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 14px 0 0;
+}
+
+.ps-auto-assign-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  background: linear-gradient(135deg, #e50914 0%, #b20710 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(229, 9, 20, 0.25);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+}
+
+.ps-auto-assign-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(229, 9, 20, 0.35);
+}
+
+.ps-auto-assign-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 /* Search bar shared across QM/Agent list views */
 .ps-search-bar {
   display: flex;

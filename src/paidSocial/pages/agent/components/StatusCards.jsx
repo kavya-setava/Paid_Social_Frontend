@@ -13,6 +13,7 @@ const STATUS_TYPES = [
   // { key: 'rejected', label: 'Rejected', color: '#dc2626' },
   { key: 'rework', label: 'Rework', color: '#ec4899' },
   { key: 'trafficked', label: 'Trafficked', color: '#10b981' },
+  { key: 'completed', label: 'Completed', color: '#22c55e' },
 ];
 
 const StatusCards = ({ counts = {}, activeStatus = 'all', onStatusSelect }) => {

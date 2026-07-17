@@ -44,6 +44,47 @@ const STATUS_CLASSES = {
 };
 export const statusClass = (status) => STATUS_CLASSES[status] || "status-rtt";
 
+/* ---------------------- Calendar Invite status ---------------------- */
+export const CI_STATUS = {
+  CALENDAR_INVITE: "CALENDAR_INVITE",
+  IN_PROGRESS: "CI_IN_PROGRESS",
+  READY_TO_QC: "CI_READY_TO_QC",
+  IN_QC: "CI_IN_QC",
+  COMPLETED: "CI_COMPLETED",
+};
+
+const CI_LABELS = {
+  CALENDAR_INVITE: "Calendar Invite",
+  CI_IN_PROGRESS: "Enable In Progress",
+  CI_READY_TO_QC: "Enable Ready to QC",
+  CI_IN_QC: "Enable In QC",
+  CI_COMPLETED: "Completed",
+};
+export const ciLabel = (s) => CI_LABELS[s] || s || "—";
+
+const CI_CLASSES = {
+  CALENDAR_INVITE: "status-rtt",
+  CI_IN_PROGRESS: "status-in-progress",
+  CI_READY_TO_QC: "status-ready-qc",
+  CI_IN_QC: "status-in-qc",
+  CI_COMPLETED: "status-trafficked",
+};
+export const ciStatusClass = (s) => CI_CLASSES[s] || "status-rtt";
+
+// Live-aware CI TAT (seconds) — counts up while the stage is open.
+export const ciAgentSeconds = (ci = {}) => {
+  if (!ci.agentStartAt) return 0;
+  const end = ci.agentEndAt ? new Date(ci.agentEndAt).getTime() : Date.now();
+  return Math.max(0, Math.floor((end - new Date(ci.agentStartAt).getTime()) / 1000));
+};
+export const ciQcSeconds = (ci = {}) => {
+  if (!ci.qcStartAt) return 0;
+  const end = ci.qcEndAt ? new Date(ci.qcEndAt).getTime() : Date.now();
+  return Math.max(0, Math.floor((end - new Date(ci.qcStartAt).getTime()) / 1000));
+};
+export const ciAgentRunning = (ci = {}) => !!ci.agentStartAt && !ci.agentEndAt;
+export const ciQcRunning = (ci = {}) => !!ci.qcStartAt && !ci.qcEndAt;
+
 /* ------------------------------ time ------------------------------ */
 // The workLog entry for the person CURRENTLY on the ticket for this role.
 // Per-person time is what the working timer must show: a new picker starts at
@@ -115,10 +156,14 @@ export const normalizeTicket = (t = {}) => {
   const qcName = current.qc?.name || "";
 
   // A QC-held ticket reads as "QC Hold"; an agent-held one as "On Hold".
+  // A trafficked ticket that entered the Calendar Invite flow shows its CI stage.
   const isQcHold = t.status === "ON_HOLD" && t.holdReturnStatus === "IN_QC";
-  const taskStatus = isQcHold
-    ? (t.reworkCount > 0 ? `QC Hold (Rework ${t.reworkCount})` : "QC Hold")
-    : statusLabel(t.status, t.reworkCount);
+  let taskStatus;
+  if (t.status === "TRAFFICKED" && t.isCalendarInvite) taskStatus = ciLabel(t.ciStatus);
+  else if (isQcHold) taskStatus = t.reworkCount > 0 ? `QC Hold (Rework ${t.reworkCount})` : "QC Hold";
+  else taskStatus = statusLabel(t.status, t.reworkCount);
+
+  const ci = t.ci || {};
 
   return {
     // identity / control
@@ -183,6 +228,19 @@ export const normalizeTicket = (t = {}) => {
     qcName,
     qcId: current.qc?._id || "",
 
+    // Calendar Invite fields
+    isCalendarInvite: !!t.isCalendarInvite,
+    ciStatus: t.ciStatus || "",
+    ciStatusLabel: ciLabel(t.ciStatus),
+    ciAgentName: ci.agent?.name || "",
+    ciAgentId: ci.agent?._id || "",
+    ciQcName: ci.qc?.name || "",
+    ciQcId: ci.qc?._id || "",
+    ciAgentStartAt: fmtDateTime(ci.agentStartAt),
+    ciAgentEndAt: fmtDateTime(ci.agentEndAt),
+    ciQcStartAt: fmtDateTime(ci.qcStartAt),
+    ciQcEndAt: fmtDateTime(ci.qcEndAt),
+
     // raw slices for action/timer logic
     _raw: {
       status: t.status,
@@ -191,6 +249,9 @@ export const normalizeTicket = (t = {}) => {
       current,
       timeline: t.timeline || {},
       holdReturnStatus: t.holdReturnStatus || null, // IN_PROGRESS = agent hold, IN_QC = QC hold
+      isCalendarInvite: !!t.isCalendarInvite,
+      ciStatus: t.ciStatus || "",
+      ci,
     },
     _ticket: t,
   };
@@ -210,7 +271,8 @@ export const QM_TAB_QUERY = {
   inQc: { status: "IN_QC" },
   rejected: { status: "REJECTED" },
   rework: { status: "REJECTED" },
-  trafficked: { status: "TRAFFICKED" },
+  trafficked: { status: "TRAFFICKED", ciCompleted: "false" }, // trafficked but CI not finished
+  completed: { status: "TRAFFICKED", ciCompleted: "true" },   // CI workflow completed
 };
 
 // Map the backend `counts` envelope to the StatusCards keys each role uses.

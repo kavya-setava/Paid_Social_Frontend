@@ -44,7 +44,12 @@ const MyDashboard = () => {
     const loadList = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await qcApi.getMyTickets({ status: TAB_STATUS[statusRef.current] });
+            const tab = statusRef.current;
+            const query =
+                tab === 'trafficked' ? { status: 'TRAFFICKED', ciCompleted: 'false' }
+                    : tab === 'completed' ? { status: 'TRAFFICKED', ciCompleted: 'true' }
+                        : { status: TAB_STATUS[tab] };
+            const res = await qcApi.getMyTickets(query);
             setTickets(normalizeList(res?.data || []));
         } catch (err) {
             toastError(errMessage(err, 'Failed to load tickets'));
@@ -56,14 +61,19 @@ const MyDashboard = () => {
 
     const loadCounts = useCallback(async () => {
         try {
-            const res = await qcApi.getMyTickets(); // counts scoped to current.qc = me
+            const [res, completed] = await Promise.all([
+                qcApi.getMyTickets(), // counts scoped to current.qc = me
+                qcApi.getMyTickets({ status: 'TRAFFICKED', ciCompleted: 'true', limit: 1 }),
+            ]);
             const c = res?.counts || {};
+            const completedCount = completed?.total ?? 0;
             setCounts({
                 readyToQc: c.READY_TO_QC ?? 0,
                 inQc: c.IN_QC ?? 0,
                 onHold: c.ON_HOLD ?? 0,
                 rejected: c.REJECTED ?? 0,
-                trafficked: c.TRAFFICKED ?? 0,
+                trafficked: Math.max(0, (c.TRAFFICKED ?? 0) - completedCount),
+                completed: completedCount,
             });
         } catch (_) { /* counts are best-effort */ }
     }, []);
