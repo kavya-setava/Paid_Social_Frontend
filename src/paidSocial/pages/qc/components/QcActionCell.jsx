@@ -13,14 +13,20 @@ const QcActionCell = ({ ticket, myId, busy = false, onPick, onStart, onApprove, 
   const id = ticket.id;
   const mine = myId && ticket.qcId && String(ticket.qcId) === String(myId);
 
-  const [rejecting, setRejecting] = useState(false);
-  const [feedback, setFeedback] = useState('');
+  const [panel, setPanel] = useState(null); // 'reject' | 'hold' | null
+  const [text, setText] = useState('');
+  const openPanel = (p) => { setPanel(p); setText(''); };
+  const closePanel = () => { setPanel(null); setText(''); };
 
   const confirmReject = () => {
-    if (!feedback.trim()) return;
-    onReject(id, feedback.trim());
-    setRejecting(false);
-    setFeedback('');
+    if (!text.trim()) return;
+    onReject(id, text.trim());
+    closePanel();
+  };
+  const confirmHold = () => {
+    if (!text.trim()) return; // QC hold comment is required
+    onHold(id, text.trim());
+    closePanel();
   };
 
   if (status === STATUS.READY_TO_QC) {
@@ -54,25 +60,26 @@ const QcActionCell = ({ ticket, myId, busy = false, onPick, onStart, onApprove, 
   }
 
   if (status === STATUS.IN_QC && mine) {
-    if (rejecting) {
+    if (panel === 'reject' || panel === 'hold') {
+      const isReject = panel === 'reject';
       return (
         <div className="action-group qc-reject-group">
           <textarea
             className="rejection-input"
-            placeholder="Rejection comment (required)…"
-            value={feedback}
-            onChange={(e) => setFeedback(e.target.value)}
+            placeholder={isReject ? 'Rejection comment (required)…' : 'Reason for hold (required)…'}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
           />
           <div className="action-group">
             <button
               type="button"
               className="action-btn action-btn-primary"
-              disabled={busy || !feedback.trim()}
-              onClick={confirmReject}
+              disabled={busy || !text.trim()}
+              onClick={isReject ? confirmReject : confirmHold}
             >
-              Confirm reject
+              {isReject ? 'Confirm reject' : 'Confirm hold'}
             </button>
-            <button type="button" className="action-btn action-btn-secondary" onClick={() => setRejecting(false)}>
+            <button type="button" className="action-btn action-btn-secondary" onClick={closePanel}>
               Cancel
             </button>
           </div>
@@ -81,13 +88,13 @@ const QcActionCell = ({ ticket, myId, busy = false, onPick, onStart, onApprove, 
     }
     return (
       <div className="action-group">
-        <button type="button" className="action-btn action-btn-secondary" disabled={busy} onClick={() => onHold(id)}>
+        <button type="button" className="action-btn action-btn-secondary" disabled={busy} onClick={() => openPanel('hold')}>
           Hold
         </button>
         <button type="button" className="action-btn action-btn-approve" disabled={busy} onClick={() => onApprove(id)}>
           Approve
         </button>
-        <button type="button" className="action-btn action-btn-reject" disabled={busy} onClick={() => setRejecting(true)}>
+        <button type="button" className="action-btn action-btn-reject" disabled={busy} onClick={() => openPanel('reject')}>
           Reject
         </button>
       </div>

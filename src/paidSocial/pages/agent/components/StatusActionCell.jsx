@@ -1,16 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { STATUS } from '../../../utils/tickets';
 
-// Renders the agent's work actions for a ticket, gated by its live status
-// (see PaidSocial-API-Docs.md §4):
+// Agent work actions, gated by live status (PaidSocial-API-Docs.md §4):
 //   RTT / REJECTED (mine)   -> Start
 //   REJECTED (bucket)       -> Pick   (mode="bucket")
-//   IN_PROGRESS             -> Hold, Submit to QC
-//   ON_HOLD (mine)          -> Resume
+//   IN_PROGRESS             -> Hold (with reason), Submit to QC (with note)
+//   ON_HOLD (mine, agent)   -> Resume
 const StatusActionCell = ({ ticket, mode = 'mine', busy = false, onStart, onHold, onResume, onSubmit, onPick }) => {
   const status = ticket._raw?.status || ticket.status;
+  const holdReturn = ticket._raw?.holdReturnStatus;
   const id = ticket.id;
+
+  const [panel, setPanel] = useState(null); // 'hold' | 'submit' | null
+  const [text, setText] = useState('');
+
+  const open = (which) => { setPanel(which); setText(''); };
+  const cancel = () => { setPanel(null); setText(''); };
 
   if (mode === 'bucket' && status === STATUS.REJECTED) {
     return (
@@ -29,19 +35,58 @@ const StatusActionCell = ({ ticket, mode = 'mine', busy = false, onStart, onHold
   }
 
   if (status === STATUS.IN_PROGRESS) {
+    if (panel === 'hold') {
+      return (
+        <div className="action-group qc-reject-group">
+          <textarea
+            className="rejection-input"
+            placeholder="Reason for putting on hold (optional)…"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+          <div className="action-group">
+            <button type="button" className="action-btn action-btn-primary" disabled={busy}
+              onClick={() => { onHold(id, text.trim()); cancel(); }}>
+              Confirm hold
+            </button>
+            <button type="button" className="action-btn action-btn-secondary" onClick={cancel}>Cancel</button>
+          </div>
+        </div>
+      );
+    }
+    if (panel === 'submit') {
+      return (
+        <div className="action-group qc-reject-group">
+          <textarea
+            className="rejection-input"
+            placeholder="Note for QC (optional)…"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+          <div className="action-group">
+            <button type="button" className="action-btn action-btn-primary" disabled={busy}
+              onClick={() => { onSubmit(id, text.trim()); cancel(); }}>
+              Confirm submit
+            </button>
+            <button type="button" className="action-btn action-btn-secondary" onClick={cancel}>Cancel</button>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="action-group">
-        <button type="button" className="action-btn action-btn-secondary" disabled={busy} onClick={() => onHold(id)}>
+        <button type="button" className="action-btn action-btn-secondary" disabled={busy} onClick={() => open('hold')}>
           Hold
         </button>
-        <button type="button" className="action-btn action-btn-primary" disabled={busy} onClick={() => onSubmit(id)}>
+        <button type="button" className="action-btn action-btn-primary" disabled={busy} onClick={() => open('submit')}>
           Submit to QC
         </button>
       </div>
     );
   }
 
-  if (status === STATUS.ON_HOLD) {
+  // Only the agent's own hold (returns to IN_PROGRESS) is resumable here.
+  if (status === STATUS.ON_HOLD && holdReturn === 'IN_PROGRESS') {
     return (
       <button type="button" className="action-btn action-btn-primary" disabled={busy} onClick={() => onResume(id)}>
         Resume

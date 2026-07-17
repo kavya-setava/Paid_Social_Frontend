@@ -45,18 +45,48 @@ const STATUS_CLASSES = {
 export const statusClass = (status) => STATUS_CLASSES[status] || "status-rtt";
 
 /* ------------------------------ time ------------------------------ */
-// Banked seconds + the live delta while a timer is running now.
+// The workLog entry for the person CURRENTLY on the ticket for this role.
+// Per-person time is what the working timer must show: a new picker starts at
+// 0; the same person resumes their own total.
+const currentWorkEntry = (ticket, role) => {
+  const roleKey = role === "agent" ? "AGENT" : "QC";
+  const current = ticket?.current || {};
+  const person = role === "agent" ? current.agent : current.qc;
+  const personId = person?._id || person; // populated doc or raw id
+  if (!personId || !Array.isArray(ticket?.workLog)) return null;
+  return (
+    ticket.workLog.find(
+      (w) => w.role === roleKey && String(w.user?._id || w.user) === String(personId)
+    ) || null
+  );
+};
+
+// Live PER-PERSON seconds for the current agent/QC: their banked seconds plus
+// the delta since they (re)started, if their timer is running now.
 export const liveSeconds = (ticket, role /* "agent" | "qc" */) => {
+  const entry = currentWorkEntry(ticket, role);
+  if (!entry) return 0;
+  const base = entry.seconds || 0;
+  const live = entry.lastStartedAt
+    ? Math.floor((Date.now() - new Date(entry.lastStartedAt).getTime()) / 1000)
+    : 0;
+  return base + Math.max(0, live);
+};
+
+// Running now? True only while the current person's stint clock is ticking.
+export const isTimerRunning = (ticket, role) => {
+  const entry = currentWorkEntry(ticket, role);
+  return !!entry?.lastStartedAt;
+};
+
+// Aggregate hands-on time across everyone who worked the ticket (for QM
+// overview columns), live-aware off the global running-since stamps.
+export const aggregateSeconds = (ticket, role) => {
   const time = ticket?.time || {};
   const base = role === "agent" ? time.agentActiveSeconds : time.qcActiveSeconds;
   const since = role === "agent" ? time.agentRunningSince : time.qcRunningSince;
   const live = since ? Math.floor((Date.now() - new Date(since).getTime()) / 1000) : 0;
   return (base || 0) + Math.max(0, live);
-};
-
-export const isTimerRunning = (ticket, role) => {
-  const time = ticket?.time || {};
-  return role === "agent" ? !!time.agentRunningSince : !!time.qcRunningSince;
 };
 
 // Seconds → "HH:MM:SS".
@@ -83,6 +113,12 @@ export const normalizeTicket = (t = {}) => {
   const current = t.current || {};
   const agentName = current.agent?.name || t.operator || "";
   const qcName = current.qc?.name || "";
+
+  // A QC-held ticket reads as "QC Hold"; an agent-held one as "On Hold".
+  const isQcHold = t.status === "ON_HOLD" && t.holdReturnStatus === "IN_QC";
+  const taskStatus = isQcHold
+    ? (t.reworkCount > 0 ? `QC Hold (Rework ${t.reworkCount})` : "QC Hold")
+    : statusLabel(t.status, t.reworkCount);
 
   return {
     // identity / control
@@ -116,25 +152,26 @@ export const normalizeTicket = (t = {}) => {
     publishDate: fmtDateTime(t.publishDatePST),
     launchingPrioritization: t.launchPriority || t.priority || "",
 
-    // status columns (label folds in rework count)
-    taskStatus: statusLabel(t.status, t.reworkCount),
+    // status columns (label folds in rework count + QC-hold distinction)
+    taskStatus,
 
     // notes / QC columns
     socialiteNotes: t.socialiteNotes || "",
     traffickerComments: t.traffickerComments || "",
+    operatorComments: t.traffickerComments || "", // alias: same value as Trafficker Comments
     qmNotes: t.qmNotes || "",
     agentNotes: t.agentNotes || "",
     qcThread: t.qcThread || "",
     qcer: qcName,
     qcEr: qcName,
-    qcStatus: t.qcStatus || statusLabel(t.status, t.reworkCount),
+    qcStatus: t.qcStatus || taskStatus,
     qcComments: t.qcObservations || t.qcNotes || "",
     qcObservations: t.qcObservations || "",
     reworkReason: t.qcObservations || t.qcNotes || "",
 
-    // UT columns (banked totals, live-aware)
-    operatorTimeTaken: fmtDuration(liveSeconds(t, "agent")),
-    qcTimeTaken: fmtDuration(liveSeconds(t, "qc")),
+    // UT columns for QM overview = aggregate hands-on time (all people)
+    operatorTimeTaken: fmtDuration(aggregateSeconds(t, "agent")),
+    qcTimeTaken: fmtDuration(aggregateSeconds(t, "qc")),
 
     // people (ids power the assign / reassign selects)
     qmName: current.qm?.name || "",

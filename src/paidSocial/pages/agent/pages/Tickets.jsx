@@ -47,10 +47,11 @@ const Tickets = () => {
   usePaidSocket(() => fetchTickets());
 
   // Wrap a lifecycle action with busy state, toast + refresh.
-  const run = (fn, successMsg) => async (id) => {
+  const run = (fn, successMsg) => async (...args) => {
+    const id = args[0];
     setBusyId(id);
     try {
-      await fn(id);
+      await fn(...args);
       toastSuccess(successMsg);
       fetchTickets();
     } catch (err) {
@@ -62,9 +63,9 @@ const Tickets = () => {
 
   const actions = {
     onStart: run((id) => agentApi.start(id), 'Work started — timer running'),
-    onHold: run((id) => agentApi.hold(id, 'HOLD'), 'Ticket put on hold'),
+    onHold: run((id, note) => agentApi.hold(id, 'HOLD', note), 'Ticket put on hold'),
     onResume: run((id) => agentApi.resume(id), 'Work resumed — timer running'),
-    onSubmit: run((id) => agentApi.submit(id), 'Submitted to QC'),
+    onSubmit: run((id, note) => agentApi.submit(id, note), 'Submitted to QC'),
   };
 
   return (
