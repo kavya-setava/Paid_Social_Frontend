@@ -11,12 +11,14 @@ const BASE_COLUMNS = [
   { key: 'campaignName', label: 'Campaign Name' },
   { key: 'adSetName', label: 'AdSet Name' },
   { key: 'adName', label: 'Ad Name' },
+  { key: 'socialiteLink', label: 'Socialite Link' },
   { key: 'highVisibilityTitles', label: 'High-Visibility Titles' },
   { key: 'adTech', label: 'Ad-Tech' },
   { key: 'taskType', label: 'Task Type' },
   { key: 'page', label: 'Page' },
   { key: 'platform', label: 'Platform' },
   { key: 'region', label: 'Region' },
+  { key: 'country', label: 'Country' },
   { key: 'flightStart', label: 'AD Flight Start Date and time' },
   { key: 'flightEnd', label: 'AD Flight End Date and time' },
 ];
@@ -42,10 +44,11 @@ const FULL_TAIL = ['socialiteNotes', 'traffickerComments', 'qcThread', 'qcer', '
 const TAB_TAIL = {
   all: FULL_TAIL,
   rttAssigned: ['socialiteNotes', 'qcThread'],
-  inProgress: ['socialiteNotes', 'traffickerComments', 'qcThread'],
+  inProgress: ['socialiteNotes', 'qcThread'],
   onHold: ['socialiteNotes', 'traffickerComments', 'qcThread'],
-  readyToQc: ['socialiteNotes', 'traffickerComments', 'qcThread', 'qcer', 'qcStatus'],
-  inQc: ['socialiteNotes', 'traffickerComments', 'qcThread', 'qcer', 'qcStatus'],
+  qcOnHold: ['socialiteNotes', 'traffickerComments', 'qcThread', 'qcer', 'qcComment'],
+  readyToQc: ['socialiteNotes', 'traffickerComments', 'qcThread', 'qcer'],
+  inQc: ['socialiteNotes', 'traffickerComments', 'qcThread', 'qcer'],
   rejected: FULL_TAIL,
   rework: FULL_TAIL,
   trafficked: FULL_TAIL,
@@ -80,6 +83,16 @@ const TicketsTable = ({
   }
 
   const columnCount = 2 + BASE_COLUMNS.length + 1 + MID_COLUMNS.length + 2 + tailColumns.length + (showActions ? 1 : 0);
+
+  // Socialite Link → clickable link; everything else plain text.
+  const renderValue = (ticket, key) => {
+    if (key === 'socialiteLink') {
+      return ticket.socialiteLink
+        ? <a className="ps-link" href={ticket.socialiteLink} target="_blank" rel="noreferrer">Link</a>
+        : '—';
+    }
+    return ticket[key] || '—';
+  };
 
   const renderTimer = (ticket) => {
     const raw = ticket._ticket;
@@ -118,7 +131,7 @@ const TicketsTable = ({
               <tr key={ticket.id}>
                 <td className="bold-text">{ticket.ticketId}</td>
                 <td>{ticket.campaignName || '—'}</td>
-                {BASE_COLUMNS.map((col) => <td key={col.key}>{ticket[col.key] || '—'}</td>)}
+                {BASE_COLUMNS.map((col) => <td key={col.key}>{renderValue(ticket, col.key)}</td>)}
                 <td>{ticket.operator || 'Unassigned'}</td>
                 {MID_COLUMNS.map((col) => <td key={col.key}>{ticket[col.key] || '—'}</td>)}
                 <td>

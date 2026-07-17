@@ -30,10 +30,16 @@ const MyDashboard = () => {
     const [loading, setLoading] = useState(false);
     const [counts, setCounts] = useState({});
     const [busyId, setBusyId] = useState(null);
+    const [qcers, setQcers] = useState([]);
+    const [assigningId, setAssigningId] = useState(null);
 
     const myId = getUser()?.id || null;
     const statusRef = useRef(activeStatus);
     statusRef.current = activeStatus;
+
+    useEffect(() => {
+        qcApi.getQcers().then((r) => setQcers(r?.data || [])).catch(() => setQcers([]));
+    }, []);
 
     const loadList = useCallback(async () => {
         setLoading(true);
@@ -89,6 +95,20 @@ const MyDashboard = () => {
         onResume: run((id) => qcApi.resume(id), 'Resumed — QC timer running'),
     };
 
+    const handleAssignQc = async (id, qcId) => {
+        if (!qcId) return;
+        setAssigningId(id);
+        try {
+            await qcApi.assign(id, qcId);
+            toastSuccess('Assigned to QCer');
+            refresh();
+        } catch (err) {
+            toastError(errMessage(err, 'Could not assign QCer'));
+        } finally {
+            setAssigningId(null);
+        }
+    };
+
     return (
         <div className="my-dashboard-page">
             <StatusCards
@@ -104,6 +124,10 @@ const MyDashboard = () => {
                 busyId={busyId}
                 myId={myId}
                 actions={actions}
+                assignable={activeStatus === 'readyToQc'}
+                qcers={qcers}
+                assigningId={assigningId}
+                onAssignQc={handleAssignQc}
             />
         </div>
     );

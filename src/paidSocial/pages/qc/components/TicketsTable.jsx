@@ -11,12 +11,14 @@ const COLUMNS = [
     { key: 'campaignName', label: 'Campaign Name' },
     { key: 'adSetName', label: 'AdSet Name' },
     { key: 'adName', label: 'Ad Name' },
+    { key: 'socialiteLink', label: 'Socialite Link' },
     { key: 'highVisibilityTitles', label: 'High-Visibility Titles' },
     { key: 'adTech', label: 'Ad-Tech' },
     { key: 'taskType', label: 'Task Type' },
     { key: 'page', label: 'Page' },
     { key: 'platform', label: 'Platform' },
     { key: 'region', label: 'Region' },
+    { key: 'country', label: 'Country' },
     { key: 'adFlightStart', label: 'AD Flight Start' },
     { key: 'adFlightEnd', label: 'AD Flight End' },
     { key: 'operator', label: 'Operator' },
@@ -40,6 +42,10 @@ const TicketsTable = ({
     busyId = null,
     myId = null,
     actions = {},
+    assignable = false,      // show the "Assign To" (another QCer) column
+    qcers = [],              // [{ _id, name, isOnBreak }]
+    assigningId = null,
+    onAssignQc = () => { },
 }) => {
     const [, setNow] = useState(() => Date.now());
     useEffect(() => {
@@ -53,7 +59,7 @@ const TicketsTable = ({
         return <div className="table-loading">Loading tickets…</div>;
     }
 
-    const colCount = COLUMNS.length + (showActions ? 1 : 0);
+    const colCount = COLUMNS.length + (assignable ? 1 : 0) + (showActions ? 1 : 0);
 
     const renderCell = (ticket, key) => {
         if (key === 'taskStatus') {
@@ -71,7 +77,33 @@ const TicketsTable = ({
                 </span>
             );
         }
+        if (key === 'socialiteLink') {
+            return ticket.socialiteLink
+                ? <a className="ps-link" href={ticket.socialiteLink} target="_blank" rel="noreferrer">Link</a>
+                : '—';
+        }
         return ticket[key] || '—';
+    };
+
+    // "Assign To" dropdown — only meaningful for READY_TO_QC rows.
+    const renderAssignCell = (ticket) => {
+        if (ticket._raw?.status !== 'READY_TO_QC') return <span className="action-note">—</span>;
+        const isAssigning = assigningId === ticket.id;
+        return (
+            <select
+                className="qc-er-dropdown"
+                value={ticket.qcId || ''}
+                disabled={isAssigning}
+                onChange={(e) => onAssignQc(ticket.id, e.target.value)}
+            >
+                <option value="">{isAssigning ? 'Assigning…' : 'Assign to QCer'}</option>
+                {qcers.map((q) => (
+                    <option key={q._id} value={q._id} disabled={q.isOnBreak}>
+                        {q.name}{q.isOnBreak ? ' (on break)' : ''}
+                    </option>
+                ))}
+            </select>
+        );
     };
 
     return (
@@ -80,6 +112,7 @@ const TicketsTable = ({
                 <thead>
                     <tr>
                         {COLUMNS.map((c) => <th key={c.key}>{c.label}</th>)}
+                        {assignable && <th>Assign To</th>}
                         {showActions && <th>Actions</th>}
                     </tr>
                 </thead>
@@ -96,6 +129,7 @@ const TicketsTable = ({
                                         {renderCell(ticket, c.key)}
                                     </td>
                                 ))}
+                                {assignable && <td>{renderAssignCell(ticket)}</td>}
                                 {showActions && (
                                     <td>
                                         <QcActionCell
@@ -127,6 +161,10 @@ TicketsTable.propTypes = {
     busyId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     myId: PropTypes.string,
     actions: PropTypes.object,
+    assignable: PropTypes.bool,
+    qcers: PropTypes.arrayOf(PropTypes.object),
+    assigningId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    onAssignQc: PropTypes.func,
 };
 
 export default TicketsTable;

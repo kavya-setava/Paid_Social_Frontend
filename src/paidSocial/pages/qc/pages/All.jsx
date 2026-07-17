@@ -21,8 +21,14 @@ const All = () => {
     const [board, setBoard] = useState([]);
     const [loading, setLoading] = useState(false);
     const [busyId, setBusyId] = useState(null);
+    const [qcers, setQcers] = useState([]);
+    const [assigningId, setAssigningId] = useState(null);
 
     const myId = getUser()?.id || null;
+
+    useEffect(() => {
+        qcApi.getQcers().then((r) => setQcers(r?.data || [])).catch(() => setQcers([]));
+    }, []);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -63,6 +69,20 @@ const All = () => {
         onResume: run((id) => qcApi.resume(id), 'Resumed — QC timer running'),
     };
 
+    const handleAssignQc = async (id, qcId) => {
+        if (!qcId) return;
+        setAssigningId(id);
+        try {
+            await qcApi.assign(id, qcId);
+            toastSuccess('Assigned to QCer');
+            load();
+        } catch (err) {
+            toastError(errMessage(err, 'Could not assign QCer'));
+        } finally {
+            setAssigningId(null);
+        }
+    };
+
     const counts = {
         all: board.length,
         readyToQc: board.filter((t) => t._raw?.status === STATUS.READY_TO_QC).length,
@@ -99,6 +119,10 @@ const All = () => {
                 busyId={busyId}
                 myId={myId}
                 actions={actions}
+                assignable={activeStatus === 'all' || activeStatus === 'readyToQc'}
+                qcers={qcers}
+                assigningId={assigningId}
+                onAssignQc={handleAssignQc}
             />
         </div>
     );

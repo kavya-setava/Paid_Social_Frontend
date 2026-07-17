@@ -39,13 +39,20 @@ const Tickets = () => {
             const res = await qmApi.getTickets(query);
             setTickets(normalizeList(res?.data || []));
 
-            // Split the single RTT count into assigned / unassigned for the tabs.
+            // Split combined counts the envelope can't break down on its own:
+            // RTT → unassigned/assigned, and ON_HOLD → agent-held/QC-held.
             const base = mapCounts(res?.counts || {});
             try {
-                const un = await qmApi.getTickets({ status: 'RTT', assigned: 'false', limit: 1 });
+                const [un, holdAgent, holdQc] = await Promise.all([
+                    qmApi.getTickets({ status: 'RTT', assigned: 'false', limit: 1 }),
+                    qmApi.getTickets({ status: 'ON_HOLD', holdReturn: 'IN_PROGRESS', limit: 1 }),
+                    qmApi.getTickets({ status: 'ON_HOLD', holdReturn: 'IN_QC', limit: 1 }),
+                ]);
                 const unassigned = un?.total ?? 0;
                 base.rttUnassigned = unassigned;
                 base.rttAssigned = Math.max(0, (res?.counts?.RTT ?? 0) - unassigned);
+                base.onHold = holdAgent?.total ?? 0;
+                base.qcOnHold = holdQc?.total ?? 0;
             } catch (_) { /* keep combined fallback */ }
             setCounts(base);
         } catch (err) {

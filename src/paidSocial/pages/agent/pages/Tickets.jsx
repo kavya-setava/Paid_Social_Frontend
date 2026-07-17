@@ -11,7 +11,8 @@ const AGENT_TAB_QUERY = {
   all: {},
   rttAssigned: { status: 'RTT' },
   inProgress: { status: 'IN_PROGRESS' },
-  onHold: { status: 'ON_HOLD' },
+  onHold: { status: 'ON_HOLD', holdReturn: 'IN_PROGRESS' },
+  qcOnHold: { status: 'ON_HOLD', holdReturn: 'IN_QC' },
   readyToQc: { status: 'READY_TO_QC' },
   inQc: { status: 'IN_QC' },
   rejected: { status: 'REJECTED' },
@@ -34,7 +35,18 @@ const Tickets = () => {
     try {
       const res = await agentApi.getTickets(AGENT_TAB_QUERY[statusRef.current] || {});
       setTickets(normalizeList(res?.data || []));
-      setCounts(mapCounts(res?.counts || {}));
+
+      // ON_HOLD count from the envelope mixes agent + QC holds; split them.
+      const base = mapCounts(res?.counts || {});
+      try {
+        const [holdAgent, holdQc] = await Promise.all([
+          agentApi.getTickets({ status: 'ON_HOLD', holdReturn: 'IN_PROGRESS', limit: 1 }),
+          agentApi.getTickets({ status: 'ON_HOLD', holdReturn: 'IN_QC', limit: 1 }),
+        ]);
+        base.onHold = holdAgent?.total ?? 0;
+        base.qcOnHold = holdQc?.total ?? 0;
+      } catch (_) { /* keep combined fallback */ }
+      setCounts(base);
     } catch (err) {
       toastError(errMessage(err, 'Failed to load your tickets'));
       setTickets([]);

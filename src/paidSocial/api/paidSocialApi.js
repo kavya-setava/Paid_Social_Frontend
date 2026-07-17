@@ -61,6 +61,11 @@ export const qcApi = {
   getMyTickets: (params = {}) => http.get(`/tickets/qc/tickets${qs(params)}`).then((r) => r.data),
   // PATCH /tickets/:id/qc-pick — claim (ticket stays READY_TO_QC)
   pick: (id) => http.patch(`/tickets/${id}/qc-pick`, {}).then((r) => r.data),
+  // PATCH /tickets/:id/qc-assign — assign to another QCer (stays READY_TO_QC)
+  assign: (id, qcId, note = '') =>
+    http.patch(`/tickets/${id}/qc-assign`, { qcId, note }).then((r) => r.data),
+  // GET /tickets/operators?role=QC — the region's QCer roster
+  getQcers: () => http.get('/tickets/operators?role=QC').then((r) => r.data),
   // PATCH /tickets/:id/qc-start — begin review (READY_TO_QC → IN_QC, timer starts)
   start: (id) => http.patch(`/tickets/${id}/qc-start`, {}).then((r) => r.data),
   approve: (id, note = "", qcObservations = "") =>

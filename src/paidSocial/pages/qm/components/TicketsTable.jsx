@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import { Info } from 'lucide-react';
+import WorkHistoryModal from '../../../components/WorkHistoryModal';
 import './TicketsTable.css';
 
 // Column definition map mapping status keys directly to their exact requested column arrays
@@ -251,7 +253,45 @@ const COLUMN_MAP = {
         { label: 'QC\'er', key: 'qcer' },
         { label: 'QC Status', key: 'qcStatus' },
         { label: 'QC Comments', key: 'qcComments' }
+    ],
+    // Tickets a QC put on hold (holdReturn = IN_QC).
+    qcOnHold: [
+        { label: 'Task Received Time', key: 'taskReceivedTime' },
+        { label: 'Marketing Campaign', key: 'marketingCampaign' },
+        { label: 'Campaign Name', key: 'campaignName' },
+        { label: 'AdSet Name', key: 'adSetName' },
+        { label: 'Ad Name', key: 'adName' },
+        { label: 'High-Visibility Titles', key: 'highVisibilityTitles' },
+        { label: 'Ad- Tech', key: 'adTech' },
+        { label: 'Task Type', key: 'taskType' },
+        { label: 'Page', key: 'page' },
+        { label: 'Platform', key: 'platform' },
+        { label: 'Region', key: 'region' },
+        { label: 'AD Flight Start Date and time', key: 'adFlightStart' },
+        { label: 'AD Flight End Date and time', key: 'adFlightEnd' },
+        { label: 'Operator', key: 'operator' },
+        { label: 'Task Assigned Time', key: 'taskAssignedTime' },
+        { label: 'Publish Date (Pst)', key: 'publishDate' },
+        { label: 'Launching Prioritization', key: 'launchingPrioritization' },
+        { label: 'Task Status', key: 'taskStatus' },
+        { label: 'Socialite Notes', key: 'socialiteNotes' },
+        { label: 'QC Thread', key: 'qcThread' },
+        { label: 'QC\'er', key: 'qcer' },
+        { label: 'QC Comments', key: 'qcComments' }
     ]
+};
+
+// Injects the Country column (right of Region) and Socialite Link column
+// (right of Ad Name) into any column list — so every tab gets them without
+// editing each array above.
+const injectColumns = (cols) => {
+    const out = [];
+    cols.forEach((c) => {
+        out.push(c);
+        if (c.key === 'adName') out.push({ label: 'Socialite Link', key: 'socialiteLink' });
+        if (c.key === 'region') out.push({ label: 'Country', key: 'country' });
+    });
+    return out;
 };
 
 // Operator cell becomes an assign/reassign dropdown on the RTT tabs.
@@ -265,13 +305,41 @@ const TicketsTable = ({
     assigningId = null,
     onAssign = () => { },
 }) => {
+    // "i" history popup — { ticketId, role, title } or null.
+    const [history, setHistory] = useState(null);
+
     if (loading) {
         return <div className="table-loading">Loading tickets…</div>;
     }
 
-    // Fallback cleanly to 'all' headers if the dynamic key isn't registered
-    const currentColumns = COLUMN_MAP[activeStatus] || COLUMN_MAP.all;
+    // Fallback cleanly to 'all' headers if the dynamic key isn't registered.
+    const currentColumns = injectColumns(COLUMN_MAP[activeStatus] || COLUMN_MAP.all);
     const canAssign = ASSIGNABLE_TABS.includes(activeStatus);
+    const showHistoryIcons = activeStatus === 'all';
+
+    // A name cell that (on the All tab) carries an "i" icon opening the
+    // per-person work-time history for that role.
+    const renderPeopleCell = (ticket, cIdx, value, role) => (
+        <td key={cIdx}>
+            <span className="wh-cell">
+                {value || '-'}
+                {showHistoryIcons && (
+                    <button
+                        type="button"
+                        className="wh-info-btn"
+                        title={`View ${role === 'AGENT' ? 'agent' : 'QC'} time history`}
+                        onClick={() => setHistory({
+                            ticketId: ticket.id,
+                            role,
+                            title: `${role === 'AGENT' ? 'Agent' : 'QC'} history — ${ticket.ticketId || ''}`,
+                        })}
+                    >
+                        <Info size={12} />
+                    </button>
+                )}
+            </span>
+        </td>
+    );
 
     return (
         <div className="table-wrapper">
@@ -296,12 +364,9 @@ const TicketsTable = ({
                                 {currentColumns.map((col, cIdx) => {
                                     const cellValue = ticket[col.key];
 
-
-                                    // Style adjustments for Status text columns
+                                    // Status text columns → colored pill.
                                     if (col.key === 'taskStatus' || col.key === 'qcStatus') {
-                                        // Normalize the text value into a reliable CSS class suffix
                                         const statusKey = cellValue ? String(cellValue).toLowerCase().replace(/[^a-z0-9]/g, '') : '';
-
                                         return (
                                             <td key={cIdx}>
                                                 <span className={`status-tag ${statusKey || 'default'}`}>
@@ -311,7 +376,7 @@ const TicketsTable = ({
                                         );
                                     }
 
-                                    // Render assign/reassign dropdown on the RTT tabs.
+                                    // Assign/reassign dropdown on the RTT tabs.
                                     if (col.key === 'operator' && canAssign) {
                                         const isAssigning = assigningId === ticket.id;
                                         return (
@@ -335,9 +400,26 @@ const TicketsTable = ({
                                         );
                                     }
 
+                                    // Operator / QC'er cells get the "i" history icon on the All tab.
+                                    if (col.key === 'operator') return renderPeopleCell(ticket, cIdx, cellValue, 'AGENT');
+                                    if (col.key === 'qcer') return renderPeopleCell(ticket, cIdx, cellValue, 'QC');
+
+                                    // Socialite Link → clickable link.
+                                    if (col.key === 'socialiteLink') {
+                                        return (
+                                            <td key={cIdx}>
+                                                {cellValue ? (
+                                                    <a className="ps-link" href={cellValue} target="_blank" rel="noreferrer">
+                                                        Link
+                                                    </a>
+                                                ) : '-'}
+                                            </td>
+                                        );
+                                    }
+
                                     return (
                                         <td key={cIdx} className={col.key === 'campaignName' ? 'bold-text' : ''}>
-                                            {cellValue !== undefined && cellValue !== null ? String(cellValue) : '-'}
+                                            {cellValue !== undefined && cellValue !== null && cellValue !== '' ? String(cellValue) : '-'}
                                         </td>
                                     );
                                 })}
@@ -346,6 +428,15 @@ const TicketsTable = ({
                     )}
                 </tbody>
             </table>
+
+            {history && (
+                <WorkHistoryModal
+                    ticketId={history.ticketId}
+                    role={history.role}
+                    title={history.title}
+                    onClose={() => setHistory(null)}
+                />
+            )}
         </div>
     );
 };

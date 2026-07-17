@@ -7,6 +7,7 @@ const STATUS_TYPES = [
   { key: 'rttAssigned', label: 'RTT (Assigned)', color: '#f97316' },
   { key: 'inProgress', label: 'In Progress', color: '#3b82f6' },
   { key: 'onHold', label: 'On Hold', color: '#6b7280' },
+  { key: 'qcOnHold', label: 'QC On Hold', color: '#a855f7' },
   { key: 'readyToQc', label: 'Ready to QC', color: '#8b5cf6' },
   { key: 'inQc', label: 'In QC', color: '#eab308' },
   // { key: 'rejected', label: 'Rejected', color: '#dc2626' },
