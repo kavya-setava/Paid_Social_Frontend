@@ -6,6 +6,8 @@ import { normalizeList } from '../../../utils/tickets';
 import { getUser } from '../../../api/session';
 import { toastSuccess, toastError } from '../../../utils/toast';
 import usePaidSocket from '../../../hooks/usePaidSocket';
+import useClientTable from '../../../hooks/useClientTable';
+import { PaidSearch, PaidPagination } from '../../../components/PaidTableControls';
 import './MyDashboard.css';
 
 // The QC's individual dashboard — only tickets they claimed. Each tab maps to
@@ -36,6 +38,8 @@ const MyDashboard = () => {
     const myId = getUser()?.id || null;
     const statusRef = useRef(activeStatus);
     statusRef.current = activeStatus;
+
+    const { query, setQuery, page, setPage, total, totalPages, pageRows } = useClientTable(tickets, 10);
 
     useEffect(() => {
         qcApi.getQcers().then((r) => setQcers(r?.data || [])).catch(() => setQcers([]));
@@ -127,8 +131,9 @@ const MyDashboard = () => {
                 onStatusSelect={setActiveStatus}
                 tabType="myDashboard"
             />
+            <PaidSearch value={query} onChange={setQuery} />
             <TicketsTable
-                tickets={tickets}
+                tickets={pageRows}
                 loading={loading}
                 showActions={ACTION_TABS.includes(activeStatus)}
                 busyId={busyId}
@@ -139,6 +144,7 @@ const MyDashboard = () => {
                 assigningId={assigningId}
                 onAssignQc={handleAssignQc}
             />
+            <PaidPagination page={page} totalPages={totalPages} total={total} onPage={setPage} />
         </div>
     );
 };

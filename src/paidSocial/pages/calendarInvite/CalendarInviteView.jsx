@@ -1,20 +1,22 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
-import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Info } from 'lucide-react';
 import { calendarApi, qmApi, qcApi, errMessage } from '../../api/paidSocialApi';
 import { getUser } from '../../api/session';
 import {
-  normalizeList, ciStatusClass, ciLabel, fmtDuration, CI_STATUS,
+  normalizeList, ciStatusClass, ciLabel, CI_STATUS, fmtDuration,
   ciAgentSeconds, ciQcSeconds, ciAgentRunning, ciQcRunning,
 } from '../../utils/tickets';
 import { toastSuccess, toastError } from '../../utils/toast';
 import usePaidSocket from '../../hooks/usePaidSocket';
-import { CI_CARDS, CI_TRANSITIONS } from './ciConstants';
+import useClientTable from '../../hooks/useClientTable';
+import { PaidSearch, PaidPagination } from '../../components/PaidTableControls';
+import WorkHistoryModal from '../../components/WorkHistoryModal';
+import { CI_CARDS } from './ciConstants';
 import './CalendarInvite.css';
 
-const PAGE_SIZE = 20;
-
-const COLUMNS = [
+// Columns common to every tab.
+const BASE = [
   { key: 'ticketId', label: 'Ticket ID' },
   { key: 'campaignName', label: 'Campaign Name' },
   { key: 'adSetName', label: 'AdSet Name' },
@@ -25,42 +27,57 @@ const COLUMNS = [
   { key: 'country', label: 'Country' },
   { key: 'publishDate', label: 'Publish Date (PST)' },
   { key: 'ciStatusCell', label: 'CI Status' },
-  { key: 'ciAgentName', label: 'Agent' },
-  { key: 'ciAgentStartAt', label: 'Agent Start' },
-  { key: 'ciAgentEndAt', label: 'Agent End' },
-  { key: 'agentUt', label: 'Agent UT' },
-  { key: 'ciQcName', label: 'QC' },
-  { key: 'ciQcStartAt', label: 'QC Start' },
-  { key: 'ciQcEndAt', label: 'QC End' },
-  { key: 'qcUt', label: 'QC UT' },
 ];
 
-// Shared Calendar Invite dashboard for Agent / QC / QM.
-//   QM    → assigns Calendar-Invite tickets to agents (read-only on status)
-//   AGENT → works tickets assigned to them (Calendar Invite → In Progress → Ready to QC)
-//   QC    → picks/assigns from the Ready-to-QC pool, then In QC → Completed
+// Column pieces for the CI tail.
+const COL = {
+  agent: { key: 'ciAgentCell', label: 'Agent' },
+  agentUt: { key: 'agentUt', label: 'Agent UT' },
+  qc: { key: 'ciQcCell', label: 'QC' },
+  qcUt: { key: 'qcUt', label: 'QC UT' },
+  traffickerComments: { key: 'traffickerComments', label: 'Trafficker Comments' },
+  qcComments: { key: 'qcComments', label: 'QC Comments' },
+  prevAgent: { key: 'agentName', label: 'Previous Trafficker Name' },
+  prevQc: { key: 'qcName', label: 'Previous QC Name' },
+};
+const CTX = [COL.traffickerComments, COL.qcComments, COL.prevAgent, COL.prevQc];
+
+// Per-role, per-tab tail columns (see the requested layout).
+const ciTail = (role, tab) => {
+  // Calendar Invite tab (all roles): normal-flow context only (no CI timing yet).
+  if (tab === CI_STATUS.CALENDAR_INVITE) return [...CTX];
+  if (role === 'AGENT') {
+    if (tab === CI_STATUS.IN_PROGRESS || tab === CI_STATUS.READY_TO_QC) return [COL.agent, COL.agentUt, ...CTX];
+    if (tab === CI_STATUS.COMPLETED) return [COL.agent, COL.agentUt, COL.qc];
+    if (tab === 'all') return [COL.agent, COL.agentUt, COL.qc, ...CTX]; // no QC UT
+    return [COL.agent, COL.agentUt, COL.qc, COL.qcUt, ...CTX];          // Calendar Invite, In QC
+  }
+  if (role === 'QC') {
+    if (tab === CI_STATUS.COMPLETED) return [COL.agent, COL.qc, COL.qcUt];
+    return [COL.agent, COL.qc, COL.qcUt, ...CTX];                        // no Agent UT anywhere
+  }
+  // QM — full set.
+  return [COL.agent, COL.agentUt, COL.qc, COL.qcUt, ...CTX];
+};
+
 const CalendarInviteView = ({ role }) => {
   const cards = CI_CARDS[role] || CI_CARDS.QM;
-  const transitions = CI_TRANSITIONS[role] || {};
   const myId = getUser()?.id || null;
-  const showActionCol = role === 'QM' || role === 'QC';
 
   const [activeStatus, setActiveStatus] = useState('all');
   const [tickets, setTickets] = useState([]);
   const [counts, setCounts] = useState({});
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [search, setSearch] = useState('');
-  const [searchInput, setSearchInput] = useState('');
   const [busyId, setBusyId] = useState(null);
   const [roster, setRoster] = useState([]); // agents (QM) or QCers (QC)
+  const [history, setHistory] = useState(null); // { ticketId, role, title }
 
-  const stateRef = useRef({ activeStatus, search, page });
-  stateRef.current = { activeStatus, search, page };
+  // Client-side search (all columns) + 10-per-page pagination.
+  const { query, setQuery, page, setPage, total, totalPages, pageRows } = useClientTable(tickets, 10);
 
-  // Roster for the assign dropdowns.
+  const statusRef = useRef(activeStatus);
+  statusRef.current = activeStatus;
+
   useEffect(() => {
     if (role === 'QM') qmApi.getOperators('AGENT').then((r) => setRoster(r?.data || [])).catch(() => setRoster([]));
     else if (role === 'QC') qcApi.getQcers().then((r) => setRoster(r?.data || [])).catch(() => setRoster([]));
@@ -69,17 +86,13 @@ const CalendarInviteView = ({ role }) => {
   const fetchList = useCallback(async () => {
     setLoading(true);
     try {
-      const { activeStatus: st, search: q, page: p } = stateRef.current;
+      const st = statusRef.current;
       const res = await calendarApi.getList({
         status: st === 'all' ? undefined : st,
-        search: q || undefined,
-        page: p,
-        limit: PAGE_SIZE,
+        limit: 200,
       });
       setTickets(normalizeList(res?.data || []));
       setCounts(res?.counts || {});
-      setTotalPages(res?.totalPages || 1);
-      setTotal(res?.total || 0);
     } catch (err) {
       toastError(errMessage(err, 'Failed to load calendar invites'));
       setTickets([]);
@@ -88,10 +101,10 @@ const CalendarInviteView = ({ role }) => {
     }
   }, []);
 
-  useEffect(() => { fetchList(); }, [activeStatus, search, page, fetchList]);
+  useEffect(() => { fetchList(); }, [activeStatus, fetchList]);
   usePaidSocket(() => fetchList());
 
-  // Live TAT ticking while any stage is open.
+  // Tick every second so the running Agent/QC UT re-renders live.
   const [, setNow] = useState(() => Date.now());
   useEffect(() => {
     const anyRunning = tickets.some((t) => ciAgentRunning(t._raw?.ci) || ciQcRunning(t._raw?.ci));
@@ -101,9 +114,7 @@ const CalendarInviteView = ({ role }) => {
   }, [tickets]);
 
   const selectCard = (key) => { setActiveStatus(key); setPage(1); };
-  const submitSearch = (e) => { e.preventDefault(); setSearch(searchInput.trim()); setPage(1); };
 
-  // Generic action runner: busy + toast + refetch.
   const run = (fn, msg) => async (...args) => {
     setBusyId(args[0]);
     try {
@@ -122,41 +133,36 @@ const CalendarInviteView = ({ role }) => {
   const qcPick = run((id) => calendarApi.qcPick(id), 'Picked — start when ready');
   const qcAssign = run((id, qcId) => calendarApi.qcAssign(id, qcId), 'Assigned to QCer');
 
-  // Status column: editable dropdown for the owner at an editable stage.
-  const renderStatusCell = (ticket) => {
-    const cur = ticket._raw?.ciStatus;
-    let options = null;
-    if (role === 'AGENT') options = transitions[cur];
-    else if (role === 'QC' && String(ticket.ciQcId) === String(myId)) options = transitions[cur];
+  const columns = [...BASE, ...ciTail(role, activeStatus)];
+  const showAction = activeStatus !== CI_STATUS.COMPLETED; // terminal — no actions
 
-    if (options) {
-      return (
-        <select
-          className="status-select"
-          value={cur}
-          disabled={busyId === ticket.id}
-          onChange={(e) => e.target.value !== cur && changeStatus(ticket.id, e.target.value)}
-        >
-          {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
-      );
-    }
-    return <span className={`status-tag ${ciStatusClass(cur)}`}>{ciLabel(cur)}</span>;
-  };
+  const openHistory = (ticket, hRole) => setHistory({
+    ticketId: ticket.id,
+    role: hRole,
+    title: `${hRole === 'AGENT' ? 'Agent' : 'QC'} history — ${ticket.ticketId || ''}`,
+  });
 
-  // Assign / Action column (QM + QC only).
-  const renderActionCell = (ticket) => {
+  const peopleCell = (ticket, name, hRole) => (
+    <span className="wh-cell">
+      {name || '—'}
+      <button type="button" className="wh-info-btn" title="View history" onClick={() => openHistory(ticket, hRole)}>
+        <Info size={12} />
+      </button>
+    </span>
+  );
+
+  // Action column — role + status gated buttons.
+  const renderAction = (ticket) => {
     const cur = ticket._raw?.ciStatus;
+    const busy = busyId === ticket.id;
+    const mineQc = String(ticket.ciQcId) === String(myId);
+
     if (role === 'QM') {
       if (cur !== CI_STATUS.CALENDAR_INVITE) return <span className="action-note">—</span>;
       return (
-        <select
-          className="status-select"
-          value={ticket.ciAgentId || ''}
-          disabled={busyId === ticket.id}
-          onChange={(e) => e.target.value && assignAgent(ticket.id, e.target.value)}
-        >
-          <option value="">{busyId === ticket.id ? 'Assigning…' : 'Assign agent'}</option>
+        <select className="status-select" value={ticket.ciAgentId || ''} disabled={busy}
+          onChange={(e) => e.target.value && assignAgent(ticket.id, e.target.value)}>
+          <option value="">{busy ? 'Assigning…' : 'Assign agent'}</option>
           {roster.map((a) => (
             <option key={a._id} value={a._id} disabled={a.isOnBreak}>
               {a.name}{a.isOnBreak ? ' (on break)' : ''}
@@ -165,19 +171,22 @@ const CalendarInviteView = ({ role }) => {
         </select>
       );
     }
-    // QC pool row (Ready to QC, unclaimed): Pick + assign-to-QC.
+
+    if (role === 'AGENT') {
+      if (cur === CI_STATUS.CALENDAR_INVITE)
+        return <button type="button" className="action-btn action-btn-primary" disabled={busy} onClick={() => changeStatus(ticket.id, CI_STATUS.IN_PROGRESS)}>Enable In Progress</button>;
+      if (cur === CI_STATUS.IN_PROGRESS)
+        return <button type="button" className="action-btn action-btn-primary" disabled={busy} onClick={() => changeStatus(ticket.id, CI_STATUS.READY_TO_QC)}>Enable Ready to QC</button>;
+      return <span className="action-note">—</span>;
+    }
+
+    // QC
     if (cur === CI_STATUS.READY_TO_QC && !ticket.ciQcId) {
       return (
         <div className="action-group">
-          <button type="button" className="action-btn action-btn-primary" disabled={busyId === ticket.id} onClick={() => qcPick(ticket.id)}>
-            Pick
-          </button>
-          <select
-            className="status-select"
-            value=""
-            disabled={busyId === ticket.id}
-            onChange={(e) => e.target.value && qcAssign(ticket.id, e.target.value)}
-          >
+          <button type="button" className="action-btn action-btn-primary" disabled={busy} onClick={() => qcPick(ticket.id)}>Pick</button>
+          <select className="status-select" value="" disabled={busy}
+            onChange={(e) => e.target.value && qcAssign(ticket.id, e.target.value)}>
             <option value="">Assign to QCer</option>
             {roster.map((q) => (
               <option key={q._id} value={q._id} disabled={q.isOnBreak}>
@@ -188,16 +197,27 @@ const CalendarInviteView = ({ role }) => {
         </div>
       );
     }
+    if (cur === CI_STATUS.READY_TO_QC && mineQc)
+      return <button type="button" className="action-btn action-btn-primary" disabled={busy} onClick={() => changeStatus(ticket.id, CI_STATUS.IN_QC)}>Enable In QC</button>;
+    if (cur === CI_STATUS.IN_QC && mineQc)
+      return <button type="button" className="action-btn action-btn-approve" disabled={busy} onClick={() => changeStatus(ticket.id, CI_STATUS.COMPLETED)}>Complete</button>;
     return <span className="action-note">—</span>;
   };
 
   const renderCell = (ticket, key) => {
-    if (key === 'ciStatusCell') return renderStatusCell(ticket);
+    if (key === 'ciStatusCell') {
+      const cur = ticket._raw?.ciStatus;
+      return <span className={`status-tag ${ciStatusClass(cur)}`}>{ciLabel(cur)}</span>;
+    }
     if (key === 'socialiteLink') {
       return ticket.socialiteLink
         ? <a className="ps-link" href={ticket.socialiteLink} target="_blank" rel="noreferrer">Link</a>
         : '—';
     }
+    // CI agent / QC with ⓘ history.
+    if (key === 'ciAgentCell') return peopleCell(ticket, ticket.ciAgentName, 'AGENT');
+    if (key === 'ciQcCell') return peopleCell(ticket, ticket.ciQcName, 'QC');
+    // Live UT timers (run while the stage is open).
     if (key === 'agentUt') {
       const ci = ticket._raw?.ci || {};
       return <span className={`ps-timer ${ciAgentRunning(ci) ? 'running' : ''}`}>{fmtDuration(ciAgentSeconds(ci))}</span>;
@@ -206,10 +226,13 @@ const CalendarInviteView = ({ role }) => {
       const ci = ticket._raw?.ci || {};
       return <span className={`ps-timer ${ciQcRunning(ci) ? 'running' : ''}`}>{fmtDuration(ciQcSeconds(ci))}</span>;
     }
+    // Previous trafficker (normal-flow agent) + previous QC (plain context).
+    if (key === 'agentName') return ticket.agentName || '—';
+    if (key === 'qcName') return ticket.qcName || '—';
     return ticket[key] || '—';
   };
 
-  const colCount = COLUMNS.length + (showActionCol ? 1 : 0);
+  const colCount = columns.length + (showAction ? 1 : 0);
 
   return (
     <div className="ci-page">
@@ -237,44 +260,30 @@ const CalendarInviteView = ({ role }) => {
         })}
       </div>
 
-      <form className="ps-search-bar" onSubmit={submitSearch}>
-        <Search size={16} />
-        <input
-          type="text"
-          placeholder="Search campaign, ticket ID, ad name…"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-        />
-        {search && (
-          <button type="button" className="ps-search-clear" onClick={() => { setSearchInput(''); setSearch(''); setPage(1); }}>
-            Clear
-          </button>
-        )}
-        <button type="submit" className="ps-search-submit">Search</button>
-      </form>
+      <PaidSearch value={query} onChange={setQuery} />
 
       <div className="table-wrapper">
         <table className="qc-table">
           <thead>
             <tr>
-              {COLUMNS.map((c) => <th key={c.key}>{c.label}</th>)}
-              {showActionCol && <th>{role === 'QM' ? 'Assign To' : 'Action'}</th>}
+              {columns.map((c) => <th key={c.key}>{c.label}</th>)}
+              {showAction && <th>Action</th>}
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr><td colSpan={colCount} className="table-loading">Loading…</td></tr>
-            ) : tickets.length === 0 ? (
+            ) : pageRows.length === 0 ? (
               <tr><td colSpan={colCount} className="no-data">No calendar-invite tickets found.</td></tr>
             ) : (
-              tickets.map((t) => (
+              pageRows.map((t) => (
                 <tr key={t.id}>
-                  {COLUMNS.map((c) => (
+                  {columns.map((c) => (
                     <td key={c.key} className={c.key === 'campaignName' ? 'bold-text' : ''}>
                       {renderCell(t, c.key)}
                     </td>
                   ))}
-                  {showActionCol && <td>{renderActionCell(t)}</td>}
+                  {showAction && <td>{renderAction(t)}</td>}
                 </tr>
               ))
             )}
@@ -282,20 +291,15 @@ const CalendarInviteView = ({ role }) => {
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="ci-pagination">
-          <span className="ci-page-info">
-            Page {page} of {totalPages} · {total} ticket{total === 1 ? '' : 's'}
-          </span>
-          <div className="ci-page-controls">
-            <button type="button" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
-              <ChevronLeft size={16} /> Prev
-            </button>
-            <button type="button" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
-              Next <ChevronRight size={16} />
-            </button>
-          </div>
-        </div>
+      <PaidPagination page={page} totalPages={totalPages} total={total} onPage={setPage} />
+
+      {history && (
+        <WorkHistoryModal
+          ticketId={history.ticketId}
+          role={history.role}
+          title={history.title}
+          onClose={() => setHistory(null)}
+        />
       )}
     </div>
   );

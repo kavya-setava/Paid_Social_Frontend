@@ -1,0 +1,83 @@
+/* Shared search bar */
+.ps-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 6px;
+  padding: 8px 12px;
+  background: #1c1c1c;
+  border: 1px solid #2e2e2e;
+  border-radius: 10px;
+  color: #8c8c8c;
+}
+
+.ps-search-bar input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #f5f5f5;
+  font-size: 14px;
+}
+
+.ps-search-bar input::placeholder {
+  color: #6b7280;
+}
+
+.ps-search-clear {
+  padding: 7px 14px;
+  border-radius: 7px;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #2a2a2a;
+  color: #cbd5e1;
+}
+
+.ps-search-clear:hover {
+  background: #333;
+}
+
+/* Shared pagination */
+.ps-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding: 4px 2px;
+}
+
+.ps-page-info {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.ps-page-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.ps-page-controls button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 14px;
+  background: #1f1f1f;
+  border: 1px solid #2e2e2e;
+  border-radius: 8px;
+  color: #e5e7eb;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.ps-page-controls button:hover:not(:disabled) {
+  background: #2a2a2a;
+}
+
+.ps-page-controls button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

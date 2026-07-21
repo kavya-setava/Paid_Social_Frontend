@@ -6,6 +6,8 @@ import { normalizeList, STATUS } from '../../../utils/tickets';
 import { getUser } from '../../../api/session';
 import { toastSuccess, toastError } from '../../../utils/toast';
 import usePaidSocket from '../../../hooks/usePaidSocket';
+import useClientTable from '../../../hooks/useClientTable';
+import { PaidSearch, PaidPagination } from '../../../components/PaidTableControls';
 import './All.css';
 
 // Shared QC board — visible to every QC. Shows all region tickets in a QC stage
@@ -111,6 +113,8 @@ const All = () => {
                             rejected: STATUS.REJECTED,
                         }[activeStatus]);
 
+    const { query, setQuery, page, setPage, total, totalPages, pageRows } = useClientTable(visible, 10);
+
     return (
         <div className="all-page">
             <StatusCards
@@ -119,8 +123,9 @@ const All = () => {
                 onStatusSelect={setActiveStatus}
                 tabType="all"
             />
+            <PaidSearch value={query} onChange={setQuery} />
             <TicketsTable
-                tickets={visible}
+                tickets={pageRows}
                 loading={loading}
                 showActions
                 busyId={busyId}
@@ -131,6 +136,7 @@ const All = () => {
                 assigningId={assigningId}
                 onAssignQc={handleAssignQc}
             />
+            <PaidPagination page={page} totalPages={totalPages} total={total} onPage={setPage} />
         </div>
     );
 };

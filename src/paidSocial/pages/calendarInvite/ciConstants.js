@@ -7,6 +7,7 @@ export const CI_CARDS = {
     { key: CI_STATUS.CALENDAR_INVITE, label: 'Calendar Invite', color: '#f97316' },
     { key: CI_STATUS.IN_PROGRESS, label: 'Enable In Progress', color: '#3b82f6' },
     { key: CI_STATUS.READY_TO_QC, label: 'Enable Ready to QC', color: '#8b5cf6' },
+    { key: CI_STATUS.IN_QC, label: 'Enable In QC', color: '#ec4899' },
     { key: CI_STATUS.COMPLETED, label: 'Completed', color: '#10b981' },
   ],
   QC: [

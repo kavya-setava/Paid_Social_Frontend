@@ -5,6 +5,8 @@ import { agentApi, errMessage } from '../../../api/paidSocialApi';
 import { normalizeList, mapCounts } from '../../../utils/tickets';
 import { toastSuccess, toastError } from '../../../utils/toast';
 import usePaidSocket from '../../../hooks/usePaidSocket';
+import useClientTable from '../../../hooks/useClientTable';
+import { PaidSearch, PaidPagination } from '../../../components/PaidTableControls';
 import './Tickets.css';
 
 const AGENT_TAB_QUERY = {
@@ -33,6 +35,8 @@ const Tickets = () => {
   const statusRef = useRef(activeStatus);
   statusRef.current = activeStatus;
 
+  const { query, setQuery, page, setPage, total, totalPages, pageRows } = useClientTable(tickets, 10);
+
   // Region agent roster for the RTT-Assigned transfer dropdown.
   useEffect(() => {
     agentApi.getAgents().then((r) => setAgents(r?.data || [])).catch(() => setAgents([]));
@@ -41,7 +45,7 @@ const Tickets = () => {
   const fetchTickets = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await agentApi.getTickets(AGENT_TAB_QUERY[statusRef.current] || {});
+      const res = await agentApi.getTickets({ ...(AGENT_TAB_QUERY[statusRef.current] || {}), limit: 200 });
       setTickets(normalizeList(res?.data || []));
 
       // ON_HOLD count from the envelope mixes agent + QC holds; split them.
@@ -109,8 +113,9 @@ const Tickets = () => {
   return (
     <div className="tickets-page">
       <StatusCards counts={counts} activeStatus={activeStatus} onStatusSelect={setActiveStatus} />
+      <PaidSearch value={query} onChange={setQuery} />
       <TicketsTable
-        tickets={tickets}
+        tickets={pageRows}
         loading={loading}
         activeStatus={activeStatus}
         mode="mine"
@@ -120,6 +125,7 @@ const Tickets = () => {
         transferringId={transferringId}
         onTransfer={handleTransfer}
       />
+      <PaidPagination page={page} totalPages={totalPages} total={total} onPage={setPage} />
     </div>
   );
 };

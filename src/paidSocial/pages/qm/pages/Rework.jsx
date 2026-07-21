@@ -4,6 +4,8 @@ import { qmApi, ticketApi, errMessage } from '../../../api/paidSocialApi';
 import { normalizeList } from '../../../utils/tickets';
 import { toastSuccess, toastError } from '../../../utils/toast';
 import usePaidSocket from '../../../hooks/usePaidSocket';
+import useClientTable from '../../../hooks/useClientTable';
+import { PaidSearch, PaidPagination } from '../../../components/PaidTableControls';
 import WorkHistoryModal from '../../../components/WorkHistoryModal';
 import './Rework.css';
 
@@ -43,6 +45,8 @@ const Rework = () => {
   const [operators, setOperators] = useState([]);
   const [assigningId, setAssigningId] = useState(null);
   const [history, setHistory] = useState(null); // { ticketId, role, title }
+
+  const { query, setQuery, page, setPage, total, totalPages, pageRows } = useClientTable(tasks, 10);
 
   useEffect(() => {
     qmApi
@@ -155,6 +159,8 @@ const Rework = () => {
     <div className="rework-container">
       <h2 className="rework-title">Rework Queue</h2>
 
+      <PaidSearch value={query} onChange={setQuery} />
+
       <div className="table-wrapper">
         <table className="qm-table">
           <thead>
@@ -171,14 +177,14 @@ const Rework = () => {
                   Loading rework…
                 </td>
               </tr>
-            ) : tasks.length === 0 ? (
+            ) : pageRows.length === 0 ? (
               <tr>
                 <td colSpan={REWORK_COLUMNS.length} className="no-data">
                   No rework tickets found.
                 </td>
               </tr>
             ) : (
-              tasks.map((task) => (
+              pageRows.map((task) => (
                 <tr key={task.id}>
                   {REWORK_COLUMNS.map((col) => (
                     <td key={col.key}>{renderCellContent(task, col)}</td>
@@ -189,6 +195,8 @@ const Rework = () => {
           </tbody>
         </table>
       </div>
+
+      <PaidPagination page={page} totalPages={totalPages} total={total} onPage={setPage} />
 
       {history && (
         <WorkHistoryModal

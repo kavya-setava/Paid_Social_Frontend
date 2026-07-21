@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Search, Zap } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import StatusCards from '../components/StatusCards';
 import TicketsTable from '../components/TicketsTable';
 import { qmApi, errMessage } from '../../../api/paidSocialApi';
 import { normalizeList, mapCounts, QM_TAB_QUERY } from '../../../utils/tickets';
 import { toastSuccess, toastError } from '../../../utils/toast';
 import usePaidSocket from '../../../hooks/usePaidSocket';
+import useClientTable from '../../../hooks/useClientTable';
+import { PaidSearch, PaidPagination } from '../../../components/PaidTableControls';
 import './Tickets.css';
 
 const Tickets = () => {
@@ -14,15 +16,14 @@ const Tickets = () => {
     const [loading, setLoading] = useState(false);
     const [counts, setCounts] = useState({});
     const [operators, setOperators] = useState([]);
-    const [search, setSearch] = useState('');
-    const [searchInput, setSearchInput] = useState('');
     const [assigningId, setAssigningId] = useState(null);
     const [autoAssigning, setAutoAssigning] = useState(false);
 
     const activeStatusRef = useRef(activeStatus);
     activeStatusRef.current = activeStatus;
-    const searchRef = useRef(search);
-    searchRef.current = search;
+
+    // Client-side search (all columns) + 10-per-page pagination.
+    const { query, setQuery, page, setPage, total, totalPages, pageRows } = useClientTable(tickets, 10);
 
     // Load the region's agent roster once (for the assign dropdown).
     useEffect(() => {
@@ -35,9 +36,8 @@ const Tickets = () => {
     const fetchTickets = useCallback(async () => {
         setLoading(true);
         try {
-            const query = { ...QM_TAB_QUERY[activeStatusRef.current] };
-            if (searchRef.current) query.search = searchRef.current;
-            const res = await qmApi.getTickets(query);
+            const q = { ...QM_TAB_QUERY[activeStatusRef.current], limit: 200 };
+            const res = await qmApi.getTickets(q);
             setTickets(normalizeList(res?.data || []));
 
             // Split combined counts the envelope can't break down on its own:
@@ -70,7 +70,7 @@ const Tickets = () => {
 
     useEffect(() => {
         fetchTickets();
-    }, [activeStatus, search, fetchTickets]);
+    }, [activeStatus, fetchTickets]);
 
     // Live refresh on any ticket event.
     usePaidSocket(() => fetchTickets());
@@ -87,11 +87,6 @@ const Tickets = () => {
         } finally {
             setAssigningId(null);
         }
-    };
-
-    const submitSearch = (e) => {
-        e.preventDefault();
-        setSearch(searchInput.trim());
     };
 
     const handleAutoAssign = async () => {
@@ -133,34 +128,18 @@ const Tickets = () => {
                 </div>
             )}
 
-            <form className="ps-search-bar" onSubmit={submitSearch}>
-                <Search size={16} />
-                <input
-                    type="text"
-                    placeholder="Search campaign, ticket ID, ad name, operator…"
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                />
-                {search && (
-                    <button
-                        type="button"
-                        className="ps-search-clear"
-                        onClick={() => { setSearchInput(''); setSearch(''); }}
-                    >
-                        Clear
-                    </button>
-                )}
-                <button type="submit" className="ps-search-submit">Search</button>
-            </form>
+            <PaidSearch value={query} onChange={setQuery} />
 
             <TicketsTable
-                tickets={tickets}
+                tickets={pageRows}
                 loading={loading}
                 activeStatus={activeStatus}
                 operators={operators}
                 assigningId={assigningId}
                 onAssign={handleAssign}
             />
+
+            <PaidPagination page={page} totalPages={totalPages} total={total} onPage={setPage} />
         </div>
     );
 };

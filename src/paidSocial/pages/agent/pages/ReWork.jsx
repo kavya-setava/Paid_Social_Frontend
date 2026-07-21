@@ -4,6 +4,8 @@ import { agentApi, ticketApi, errMessage } from '../../../api/paidSocialApi';
 import { normalizeList } from '../../../utils/tickets';
 import { toastSuccess, toastError } from '../../../utils/toast';
 import usePaidSocket from '../../../hooks/usePaidSocket';
+import useClientTable from '../../../hooks/useClientTable';
+import { PaidSearch, PaidPagination } from '../../../components/PaidTableControls';
 import './Tickets.css';
 
 // Common rework bucket: REJECTED tickets any agent can claim (Pick).
@@ -11,6 +13,8 @@ const ReWork = () => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
+
+  const { query, setQuery, page, setPage, total, totalPages, pageRows } = useClientTable(tickets, 10);
 
   const fetchBucket = useCallback(async () => {
     setLoading(true);
@@ -44,14 +48,16 @@ const ReWork = () => {
   return (
     <div className="tickets-page">
       <h2 style={{ color: '#f5f5f5', margin: '4px 0 12px', fontSize: '18px' }}>Rework Bucket</h2>
+      <PaidSearch value={query} onChange={setQuery} />
       <TicketsTable
-        tickets={tickets}
+        tickets={pageRows}
         loading={loading}
         activeStatus="rework"
         mode="bucket"
         busyId={busyId}
         actions={{ onPick: handlePick }}
       />
+      <PaidPagination page={page} totalPages={totalPages} total={total} onPage={setPage} />
     </div>
   );
 };

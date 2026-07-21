@@ -106,6 +106,48 @@
   cursor: not-allowed;
 }
 
+/* CI action buttons — solid, clearly clickable in any role's page */
+.ci-page .action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.ci-page .action-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.ci-page .action-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ci-page .action-btn-primary {
+  background: #e50914;
+  color: #fff;
+}
+
+.ci-page .action-btn-primary:hover:not(:disabled) {
+  background: #c11119;
+}
+
+.ci-page .action-btn-approve {
+  background: #10b981;
+  color: #fff;
+}
+
+.ci-page .action-btn-approve:hover:not(:disabled) {
+  background: #0f9d76;
+}
+
 /* CI status dropdown (self-contained so it renders in any role's page) */
 .ci-page .status-select {
   border: 1px solid #333;
