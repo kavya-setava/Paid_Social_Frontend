@@ -8,6 +8,7 @@ import { toastSuccess, toastError } from '../../../utils/toast';
 import usePaidSocket from '../../../hooks/usePaidSocket';
 import useClientTable from '../../../hooks/useClientTable';
 import { PaidSearch, PaidPagination } from '../../../components/PaidTableControls';
+import EditTicketModal from '../../../components/EditTicketModal';
 import './Tickets.css';
 
 const Tickets = () => {
@@ -18,6 +19,7 @@ const Tickets = () => {
     const [operators, setOperators] = useState([]);
     const [assigningId, setAssigningId] = useState(null);
     const [autoAssigning, setAutoAssigning] = useState(false);
+    const [editTicket, setEditTicket] = useState(null);
 
     const activeStatusRef = useRef(activeStatus);
     activeStatusRef.current = activeStatus;
@@ -137,9 +139,18 @@ const Tickets = () => {
                 operators={operators}
                 assigningId={assigningId}
                 onAssign={handleAssign}
+                onEdit={setEditTicket}
             />
 
             <PaidPagination page={page} totalPages={totalPages} total={total} onPage={setPage} />
+
+            {editTicket && (
+                <EditTicketModal
+                    ticket={editTicket}
+                    onClose={() => setEditTicket(null)}
+                    onSaved={fetchTickets}
+                />
+            )}
         </div>
     );
 };

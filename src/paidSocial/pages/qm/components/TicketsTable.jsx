@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Info } from 'lucide-react';
+import { Info, Pencil } from 'lucide-react';
 import WorkHistoryModal from '../../../components/WorkHistoryModal';
 import './TicketsTable.css';
 
@@ -316,9 +316,13 @@ const injectColumns = (cols) => {
         out.push(c);
         if (c.key === 'adName') out.push({ label: 'Socialite Link', key: 'socialiteLink' });
         if (c.key === 'region') out.push({ label: 'Country', key: 'country' });
+        if (c.key === 'qcThread') out.push({ label: 'Tactical Link', key: 'tacticalLink' });
     });
     return out;
 };
+
+// Rows on these tabs get a per-ticket Edit pencil.
+const EDITABLE_TABS = ['all', 'trafficked'];
 
 // Operator cell becomes an assign/reassign dropdown on the RTT tabs.
 const ASSIGNABLE_TABS = ['rttUnassigned', 'rttAssigned'];
@@ -330,6 +334,7 @@ const TicketsTable = ({
     operators = [],            // [{ _id, name, isOnBreak }]
     assigningId = null,
     onAssign = () => { },
+    onEdit = null,             // (ticket) => void — enables the Edit pencil
 }) => {
     // "i" history popup — { ticketId, role, title } or null.
     const [history, setHistory] = useState(null);
@@ -342,6 +347,7 @@ const TicketsTable = ({
     const currentColumns = injectColumns(COLUMN_MAP[activeStatus] || COLUMN_MAP.all);
     const canAssign = ASSIGNABLE_TABS.includes(activeStatus);
     const showHistoryIcons = activeStatus === 'all';
+    const showEdit = !!onEdit && EDITABLE_TABS.includes(activeStatus);
 
     // A name cell that (on the All tab) carries an "i" icon opening the
     // per-person work-time history for that role.
@@ -372,6 +378,7 @@ const TicketsTable = ({
             <table className="qm-table">
                 <thead>
                     <tr>
+                        {showEdit && <th>Edit</th>}
                         {currentColumns.map((col, index) => (
                             <th key={index}>{col.label}</th>
                         ))}
@@ -380,13 +387,20 @@ const TicketsTable = ({
                 <tbody>
                     {tickets.length === 0 ? (
                         <tr>
-                            <td colSpan={currentColumns.length} className="no-data">
+                            <td colSpan={currentColumns.length + (showEdit ? 1 : 0)} className="no-data">
                                 No tickets found matching this criteria.
                             </td>
                         </tr>
                     ) : (
                         tickets.map((ticket, tIdx) => (
                             <tr key={ticket.id || tIdx}>
+                                {showEdit && (
+                                    <td>
+                                        <button type="button" className="ps-edit-btn" title="Edit ticket" onClick={() => onEdit(ticket)}>
+                                            <Pencil size={14} />
+                                        </button>
+                                    </td>
+                                )}
                                 {currentColumns.map((col, cIdx) => {
                                     const cellValue = ticket[col.key];
 
@@ -430,15 +444,16 @@ const TicketsTable = ({
                                     if (col.key === 'operator') return renderPeopleCell(ticket, cIdx, cellValue, 'AGENT');
                                     if (col.key === 'qcer') return renderPeopleCell(ticket, cIdx, cellValue, 'QC');
 
-                                    // Socialite Link → clickable link.
-                                    if (col.key === 'socialiteLink') {
+                                    // Link-style columns → show "Link" when the value is a URL.
+                                    if (col.key === 'socialiteLink' || col.key === 'tacticalLink' || col.key === 'qcThread') {
+                                        const isUrl = cellValue && /^https?:\/\//i.test(cellValue);
                                         return (
                                             <td key={cIdx}>
-                                                {cellValue ? (
+                                                {!cellValue ? '-' : isUrl ? (
                                                     <a className="ps-link" href={cellValue} target="_blank" rel="noreferrer">
                                                         Link
                                                     </a>
-                                                ) : '-'}
+                                                ) : String(cellValue)}
                                             </td>
                                         );
                                     }
@@ -474,6 +489,7 @@ TicketsTable.propTypes = {
     operators: PropTypes.arrayOf(PropTypes.object),
     assigningId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     onAssign: PropTypes.func,
+    onEdit: PropTypes.func,
 };
 
 export default TicketsTable;

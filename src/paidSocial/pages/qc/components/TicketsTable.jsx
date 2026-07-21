@@ -30,6 +30,7 @@ const COLUMNS = [
     { key: 'socialiteNotes', label: 'Socialite Notes' },
     { key: 'traffickerComments', label: 'Trafficker Comments' },
     { key: 'qcThread', label: 'QC Thread' },
+    { key: 'tacticalLink', label: 'Tactical Link' },
     { key: 'qcer', label: "QC'er" },
     { key: 'qcComments', label: 'QC Comments' },
 ];
@@ -77,10 +78,12 @@ const TicketsTable = ({
                 </span>
             );
         }
-        if (key === 'socialiteLink') {
-            return ticket.socialiteLink
-                ? <a className="ps-link" href={ticket.socialiteLink} target="_blank" rel="noreferrer">Link</a>
-                : '—';
+        if (key === 'socialiteLink' || key === 'tacticalLink' || key === 'qcThread') {
+            const url = ticket[key];
+            if (!url) return '—';
+            return /^https?:\/\//i.test(url)
+                ? <a className="ps-link" href={url} target="_blank" rel="noreferrer">Link</a>
+                : String(url);
         }
         return ticket[key] || '—';
     };

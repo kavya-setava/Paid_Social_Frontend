@@ -209,6 +209,7 @@ export const normalizeTicket = (t = {}) => {
     qmNotes: t.qmNotes || "",
     agentNotes: t.agentNotes || "",
     qcThread: t.qcThread || "",
+    tacticalLink: t.tacticalLink || "",
     qcer: qcName,
     qcEr: qcName,
     qcStatus: t.qcStatus || taskStatus,

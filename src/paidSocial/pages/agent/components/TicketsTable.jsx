@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { Info } from 'lucide-react';
+import { Info, Pencil } from 'lucide-react';
 import StatusActionCell from './StatusActionCell';
 import WorkHistoryModal from '../../../components/WorkHistoryModal';
 import { STATUS, statusClass, liveSeconds, fmtDuration, isTimerRunning } from '../../../utils/tickets';
@@ -35,10 +35,13 @@ const TAIL_COLUMN_DEFS = {
   socialiteNotes: { key: 'socialiteNotes', label: 'Socialite Notes' },
   traffickerComments: { key: 'traffickerComments', label: 'Trafficker Comments' },
   qcThread: { key: 'qcThread', label: 'QC Thread' },
+  tacticalLink: { key: 'tacticalLink', label: 'Tactical Link' },
   qcer: { key: 'qcer', label: "QC'er" },
   qcStatus: { key: 'qcStatus', label: 'QC Status' },
   qcComment: { key: 'qcComments', label: 'QC Comments' },
 };
+
+const EDITABLE_TABS = ['all', 'trafficked'];
 
 const FULL_TAIL = ['socialiteNotes', 'traffickerComments', 'qcThread', 'qcer', 'qcStatus', 'qcComment'];
 
@@ -70,12 +73,18 @@ const TicketsTable = ({
   agents = [],
   transferringId = null,
   onTransfer = () => { },
+  onEdit = null,          // (ticket) => void — Edit pencil on All/Trafficked
+  onFieldSave = null,     // (id, key, value) => void — inline QC Thread / Tactical Link
 }) => {
-  const tailKeys = TAB_TAIL[activeStatus] || FULL_TAIL;
+  // Tactical Link sits right after QC Thread in every tab.
+  const tailKeys = (TAB_TAIL[activeStatus] || FULL_TAIL).flatMap((k) =>
+    k === 'qcThread' ? ['qcThread', 'tacticalLink'] : [k]
+  );
   const tailColumns = tailKeys.map((k) => TAIL_COLUMN_DEFS[k]);
   const showActions = ACTION_TABS.includes(activeStatus) || mode === 'bucket';
   // Per-person history icons on Operator / QC'er — shown in the rework views.
   const showHistoryIcons = mode === 'bucket' || activeStatus === 'rework';
+  const showEdit = !!onEdit && EDITABLE_TABS.includes(activeStatus);
 
   const [history, setHistory] = useState(null); // { ticketId, role, title }
 
@@ -92,7 +101,21 @@ const TicketsTable = ({
     return <div className="table-loading">Loading tickets…</div>;
   }
 
-  const columnCount = 2 + BASE_COLUMNS.length + 1 + MID_COLUMNS.length + 2 + tailColumns.length + (showActions ? 1 : 0);
+  const columnCount = 2 + BASE_COLUMNS.length + 1 + MID_COLUMNS.length + 2 + tailColumns.length + (showActions ? 1 : 0) + (showEdit ? 1 : 0);
+
+  // Inline agent-editable cell for QC Thread / Tactical Link.
+  const editableInline = (ticket, key) => (
+    <input
+      key={`${ticket.id}-${key}-${ticket[key] || ''}`}
+      className="ps-inline-input"
+      defaultValue={ticket[key] || ''}
+      placeholder={key === 'tacticalLink' ? 'Paste link…' : 'QC thread…'}
+      onBlur={(e) => {
+        const v = e.target.value;
+        if (v !== (ticket[key] || '') && onFieldSave) onFieldSave(ticket.id, key, v);
+      }}
+    />
+  );
 
   // Socialite Link → clickable link; everything else plain text.
   const renderValue = (ticket, key) => {
@@ -141,6 +164,7 @@ const TicketsTable = ({
       <table className="qm-table">
         <thead>
           <tr>
+            {showEdit && <th>Edit</th>}
             <th>Ticket ID</th>
             <th>Campaign</th>
             {BASE_COLUMNS.map((col) => <th key={col.key}>{col.label}</th>)}
@@ -160,6 +184,13 @@ const TicketsTable = ({
           ) : (
             tickets.map((ticket) => (
               <tr key={ticket.id}>
+                {showEdit && (
+                  <td>
+                    <button type="button" className="ps-edit-btn" title="Edit ticket" onClick={() => onEdit(ticket)}>
+                      <Pencil size={14} />
+                    </button>
+                  </td>
+                )}
                 <td className="bold-text">{ticket.ticketId}</td>
                 <td>{ticket.campaignName || '—'}</td>
                 {BASE_COLUMNS.map((col) => <td key={col.key}>{renderValue(ticket, col.key)}</td>)}
@@ -195,7 +226,9 @@ const TicketsTable = ({
                   <td key={col.key}>
                     {col.key === 'qcer' && showHistoryIcons
                       ? peopleCell(ticket, ticket.qcer, 'QC')
-                      : (ticket[col.key] || '—')}
+                      : (col.key === 'qcThread' || col.key === 'tacticalLink')
+                        ? editableInline(ticket, col.key)
+                        : (ticket[col.key] || '—')}
                   </td>
                 ))}
                 {showActions && (
@@ -240,6 +273,8 @@ TicketsTable.propTypes = {
   agents: PropTypes.arrayOf(PropTypes.object),
   transferringId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onTransfer: PropTypes.func,
+  onEdit: PropTypes.func,
+  onFieldSave: PropTypes.func,
 };
 
 export default TicketsTable;

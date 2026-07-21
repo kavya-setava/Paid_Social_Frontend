@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import StatusCards from '../components/StatusCards';
 import TicketsTable from '../components/TicketsTable';
-import { agentApi, errMessage } from '../../../api/paidSocialApi';
+import { agentApi, ticketApi, errMessage } from '../../../api/paidSocialApi';
 import { normalizeList, mapCounts } from '../../../utils/tickets';
 import { toastSuccess, toastError } from '../../../utils/toast';
 import usePaidSocket from '../../../hooks/usePaidSocket';
 import useClientTable from '../../../hooks/useClientTable';
 import { PaidSearch, PaidPagination } from '../../../components/PaidTableControls';
+import EditTicketModal from '../../../components/EditTicketModal';
 import './Tickets.css';
 
 const AGENT_TAB_QUERY = {
@@ -31,6 +32,7 @@ const Tickets = () => {
   const [busyId, setBusyId] = useState(null);
   const [agents, setAgents] = useState([]);
   const [transferringId, setTransferringId] = useState(null);
+  const [editTicket, setEditTicket] = useState(null);
 
   const statusRef = useRef(activeStatus);
   statusRef.current = activeStatus;
@@ -96,6 +98,17 @@ const Tickets = () => {
     onSubmit: run((id, note) => agentApi.submit(id, note), 'Submitted to QC'),
   };
 
+  // Inline save for agent-editable cells (QC Thread / Tactical Link).
+  const handleFieldSave = async (id, key, value) => {
+    try {
+      await ticketApi.updateFields(id, { [key]: value });
+      toastSuccess('Saved');
+      fetchTickets();
+    } catch (err) {
+      toastError(errMessage(err, 'Could not save'));
+    }
+  };
+
   const handleTransfer = async (ticketId, agentId) => {
     if (!agentId) return;
     setTransferringId(ticketId);
@@ -124,8 +137,18 @@ const Tickets = () => {
         agents={agents}
         transferringId={transferringId}
         onTransfer={handleTransfer}
+        onEdit={setEditTicket}
+        onFieldSave={handleFieldSave}
       />
       <PaidPagination page={page} totalPages={totalPages} total={total} onPage={setPage} />
+
+      {editTicket && (
+        <EditTicketModal
+          ticket={editTicket}
+          onClose={() => setEditTicket(null)}
+          onSaved={fetchTickets}
+        />
+      )}
     </div>
   );
 };
