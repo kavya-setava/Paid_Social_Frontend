@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Info, Pencil } from 'lucide-react';
 import WorkHistoryModal from '../../../components/WorkHistoryModal';
+import { isUnavailable, operatorLabel } from '../../../utils/tickets';
 import './TicketsTable.css';
 
 // Column definition map mapping status keys directly to their exact requested column arrays
@@ -431,8 +432,8 @@ const TicketsTable = ({
                                                         {isAssigning ? 'Assigning…' : 'Select Operator'}
                                                     </option>
                                                     {operators.map((op) => (
-                                                        <option key={op._id} value={op._id} disabled={op.isOnBreak}>
-                                                            {op.name}{op.isOnBreak ? ' (on break)' : ''}
+                                                        <option key={op._id} value={op._id} disabled={isUnavailable(op)}>
+                                                            {operatorLabel(op)}
                                                         </option>
                                                     ))}
                                                 </select>

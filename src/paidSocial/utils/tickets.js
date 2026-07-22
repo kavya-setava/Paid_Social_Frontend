@@ -44,6 +44,16 @@ const STATUS_CLASSES = {
 };
 export const statusClass = (status) => STATUS_CLASSES[status] || "status-rtt";
 
+/* ---------------------- assignment roster helpers ---------------------- */
+// A user can't be assigned while offline or on break.
+export const isUnavailable = (u = {}) => !u.isOnline || u.isOnBreak;
+
+// Dropdown label: red dot + status suffix for unavailable users.
+export const operatorLabel = (u = {}) => {
+  const suffix = !u.isOnline ? " (offline)" : u.isOnBreak ? " (on break)" : "";
+  return `${isUnavailable(u) ? "🔴 " : ""}${u.name}${suffix}`;
+};
+
 /* ---------------------- Calendar Invite status ---------------------- */
 export const CI_STATUS = {
   CALENDAR_INVITE: "CALENDAR_INVITE",

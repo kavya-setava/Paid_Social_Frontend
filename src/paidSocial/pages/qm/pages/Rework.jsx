@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Info } from 'lucide-react';
 import { qmApi, ticketApi, errMessage } from '../../../api/paidSocialApi';
-import { normalizeList } from '../../../utils/tickets';
+import { normalizeList, isUnavailable, operatorLabel } from '../../../utils/tickets';
 import { toastSuccess, toastError } from '../../../utils/toast';
 import usePaidSocket from '../../../hooks/usePaidSocket';
 import useClientTable from '../../../hooks/useClientTable';
@@ -123,8 +123,8 @@ const Rework = () => {
         >
           <option value="">{isAssigning ? 'Assigning…' : 'Assign operator'}</option>
           {operators.map((op) => (
-            <option key={op._id} value={op._id} disabled={op.isOnBreak}>
-              {op.name}{op.isOnBreak ? ' (on break)' : ''}
+            <option key={op._id} value={op._id} disabled={isUnavailable(op)}>
+              {operatorLabel(op)}
             </option>
           ))}
         </select>

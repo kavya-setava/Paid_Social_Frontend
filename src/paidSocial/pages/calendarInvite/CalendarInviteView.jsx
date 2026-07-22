@@ -6,6 +6,7 @@ import { getUser } from '../../api/session';
 import {
   normalizeList, ciStatusClass, ciLabel, CI_STATUS, fmtDuration,
   ciAgentSeconds, ciQcSeconds, ciAgentRunning, ciQcRunning,
+  isUnavailable, operatorLabel,
 } from '../../utils/tickets';
 import { toastSuccess, toastError } from '../../utils/toast';
 import usePaidSocket from '../../hooks/usePaidSocket';
@@ -164,8 +165,8 @@ const CalendarInviteView = ({ role }) => {
           onChange={(e) => e.target.value && assignAgent(ticket.id, e.target.value)}>
           <option value="">{busy ? 'Assigning…' : 'Assign agent'}</option>
           {roster.map((a) => (
-            <option key={a._id} value={a._id} disabled={a.isOnBreak}>
-              {a.name}{a.isOnBreak ? ' (on break)' : ''}
+            <option key={a._id} value={a._id} disabled={isUnavailable(a)}>
+              {operatorLabel(a)}
             </option>
           ))}
         </select>
@@ -189,8 +190,8 @@ const CalendarInviteView = ({ role }) => {
             onChange={(e) => e.target.value && qcAssign(ticket.id, e.target.value)}>
             <option value="">Assign to QCer</option>
             {roster.map((q) => (
-              <option key={q._id} value={q._id} disabled={q.isOnBreak}>
-                {q.name}{q.isOnBreak ? ' (on break)' : ''}
+              <option key={q._id} value={q._id} disabled={isUnavailable(q)}>
+                {operatorLabel(q)}
               </option>
             ))}
           </select>

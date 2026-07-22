@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Info, Pencil } from 'lucide-react';
 import StatusActionCell from './StatusActionCell';
 import WorkHistoryModal from '../../../components/WorkHistoryModal';
-import { STATUS, statusClass, liveSeconds, fmtDuration, isTimerRunning } from '../../../utils/tickets';
+import { STATUS, statusClass, liveSeconds, fmtDuration, isTimerRunning, isUnavailable, operatorLabel } from '../../../utils/tickets';
 import './TicketsTable.css';
 
 // Columns shared across every tab, rendered between Operator and Task Status.
@@ -206,8 +206,8 @@ const TicketsTable = ({
                         {transferringId === ticket.id ? 'Transferring…' : 'Transfer to…'}
                       </option>
                       {agents.map((a) => (
-                        <option key={a._id} value={a._id} disabled={a.isOnBreak}>
-                          {a.name}{a.isOnBreak ? ' (on break)' : ''}
+                        <option key={a._id} value={a._id} disabled={isUnavailable(a)}>
+                          {operatorLabel(a)}
                         </option>
                       ))}
                     </select>

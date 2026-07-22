@@ -42,6 +42,14 @@ export const clearSession = () => {
   localStorage.removeItem(USER_KEY);
 };
 
+// Update the stored user's presence flags (keeps the overlay/toggles in sync).
+export const setPresenceFlags = (isOnline, isOnBreak) => {
+  const u = getUser() || {};
+  u.isOnline = isOnline;
+  u.isOnBreak = isOnBreak;
+  setUser(u);
+};
+
 // Active role for the logged-in user, upper-cased (e.g. "QM" | "AGENT" | "QC").
 export const getActiveRole = () => {
   const u = getUser();

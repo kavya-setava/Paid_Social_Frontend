@@ -25,6 +25,16 @@ export const authApi = {
   me: () => http.get("/auth/me").then((r) => r.data),
   // POST /auth/logout
   logout: () => http.post("/auth/logout", {}).then((r) => r.data),
+  // PATCH /auth/presence { isOnline?, isOnBreak? }
+  setPresence: (payload) => http.patch("/auth/presence", payload).then((r) => r.data),
+};
+
+/* ========================= NOTIFICATIONS ========================= */
+export const notificationApi = {
+  // GET /notifications → { unread, data }
+  list: () => http.get("/notifications").then((r) => r.data),
+  // PATCH /notifications/read → mark all read
+  markAllRead: () => http.patch("/notifications/read", {}).then((r) => r.data),
 };
 
 /* ============================== QM ============================== */

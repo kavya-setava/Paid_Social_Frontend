@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import QcActionCell from './QcActionCell';
-import { statusClass, liveSeconds, fmtDuration, isTimerRunning } from '../../../utils/tickets';
+import { statusClass, liveSeconds, fmtDuration, isTimerRunning, isUnavailable, operatorLabel } from '../../../utils/tickets';
 import './TicketsTable.css';
 
 const COLUMNS = [
@@ -101,8 +101,8 @@ const TicketsTable = ({
             >
                 <option value="">{isAssigning ? 'Assigning…' : 'Assign to QCer'}</option>
                 {qcers.map((q) => (
-                    <option key={q._id} value={q._id} disabled={q.isOnBreak}>
-                        {q.name}{q.isOnBreak ? ' (on break)' : ''}
+                    <option key={q._id} value={q._id} disabled={isUnavailable(q)}>
+                        {operatorLabel(q)}
                     </option>
                 ))}
             </select>
