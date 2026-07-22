@@ -7,6 +7,7 @@ import { getUser } from '../../../api/session';
 import { toastSuccess, toastError } from '../../../utils/toast';
 import usePaidSocket from '../../../hooks/usePaidSocket';
 import useClientTable from '../../../hooks/useClientTable';
+import useOperators from '../../../hooks/useOperators';
 import { PaidSearch, PaidPagination } from '../../../components/PaidTableControls';
 import './All.css';
 
@@ -23,14 +24,10 @@ const All = () => {
     const [board, setBoard] = useState([]);
     const [loading, setLoading] = useState(false);
     const [busyId, setBusyId] = useState(null);
-    const [qcers, setQcers] = useState([]);
     const [assigningId, setAssigningId] = useState(null);
 
     const myId = getUser()?.id || null;
-
-    useEffect(() => {
-        qcApi.getQcers().then((r) => setQcers(r?.data || [])).catch(() => setQcers([]));
-    }, []);
+    const qcers = useOperators(() => qcApi.getQcers());
 
     const load = useCallback(async () => {
         setLoading(true);

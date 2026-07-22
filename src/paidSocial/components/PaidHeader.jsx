@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
-import { Bell, LogOut, User, ChevronDown, Check, Coffee, Power } from 'lucide-react';
+import { Bell, LogOut, User, ChevronDown, Check, Coffee, Power, X } from 'lucide-react';
 import socket from '../../socket';
 import { authApi, notificationApi, errMessage } from '../api/paidSocialApi';
 import {
@@ -92,6 +92,15 @@ const PaidHeader = ({ title = 'Ticket Management System' }) => {
     }
   };
 
+  const dismissNotif = async (e, id) => {
+    e.stopPropagation();
+    setNotifs((prev) => prev.filter((n) => n._id !== id));
+    try {
+      const res = await notificationApi.remove(id);
+      if (typeof res?.unread === 'number') setUnread(res.unread);
+    } catch (_) { loadNotifs(); }
+  };
+
   const handleSwitch = async (role) => {
     const target = String(role).toUpperCase();
     if (target === activeRole || busy) return;
@@ -174,8 +183,18 @@ const PaidHeader = ({ title = 'Ticket Management System' }) => {
                 ) : (
                   notifs.map((n) => (
                     <div key={n._id} className={`ps-notif-item ${n.read ? '' : 'unread'}`}>
-                      <span className="ps-notif-msg">{n.message}</span>
-                      <span className="ps-notif-time">{fmtDateTime(n.createdAt)}</span>
+                      <div className="ps-notif-text">
+                        <span className="ps-notif-msg">{n.message}</span>
+                        <span className="ps-notif-time">{fmtDateTime(n.createdAt)}</span>
+                      </div>
+                      <button
+                        type="button"
+                        className="ps-notif-close"
+                        title="Dismiss"
+                        onClick={(e) => dismissNotif(e, n._id)}
+                      >
+                        <X size={14} />
+                      </button>
                     </div>
                   ))
                 )}

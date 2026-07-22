@@ -6,6 +6,7 @@ import { normalizeList, mapCounts } from '../../../utils/tickets';
 import { toastSuccess, toastError } from '../../../utils/toast';
 import usePaidSocket from '../../../hooks/usePaidSocket';
 import useClientTable from '../../../hooks/useClientTable';
+import useOperators from '../../../hooks/useOperators';
 import { PaidSearch, PaidPagination } from '../../../components/PaidTableControls';
 import EditTicketModal from '../../../components/EditTicketModal';
 import './Tickets.css';
@@ -30,7 +31,6 @@ const Tickets = () => {
   const [loading, setLoading] = useState(false);
   const [counts, setCounts] = useState({});
   const [busyId, setBusyId] = useState(null);
-  const [agents, setAgents] = useState([]);
   const [transferringId, setTransferringId] = useState(null);
   const [editTicket, setEditTicket] = useState(null);
 
@@ -38,11 +38,8 @@ const Tickets = () => {
   statusRef.current = activeStatus;
 
   const { query, setQuery, page, setPage, total, totalPages, pageRows } = useClientTable(tickets, 10);
-
-  // Region agent roster for the RTT-Assigned transfer dropdown.
-  useEffect(() => {
-    agentApi.getAgents().then((r) => setAgents(r?.data || [])).catch(() => setAgents([]));
-  }, []);
+  // Region agent roster (transfer dropdown) — live-refreshes on presence change.
+  const agents = useOperators(() => agentApi.getAgents());
 
   const fetchTickets = useCallback(async () => {
     setLoading(true);

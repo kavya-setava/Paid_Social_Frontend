@@ -7,6 +7,7 @@ import { getUser } from '../../../api/session';
 import { toastSuccess, toastError } from '../../../utils/toast';
 import usePaidSocket from '../../../hooks/usePaidSocket';
 import useClientTable from '../../../hooks/useClientTable';
+import useOperators from '../../../hooks/useOperators';
 import { PaidSearch, PaidPagination } from '../../../components/PaidTableControls';
 import './MyDashboard.css';
 
@@ -32,7 +33,6 @@ const MyDashboard = () => {
     const [loading, setLoading] = useState(false);
     const [counts, setCounts] = useState({});
     const [busyId, setBusyId] = useState(null);
-    const [qcers, setQcers] = useState([]);
     const [assigningId, setAssigningId] = useState(null);
 
     const myId = getUser()?.id || null;
@@ -40,10 +40,7 @@ const MyDashboard = () => {
     statusRef.current = activeStatus;
 
     const { query, setQuery, page, setPage, total, totalPages, pageRows } = useClientTable(tickets, 10);
-
-    useEffect(() => {
-        qcApi.getQcers().then((r) => setQcers(r?.data || [])).catch(() => setQcers([]));
-    }, []);
+    const qcers = useOperators(() => qcApi.getQcers());
 
     const loadList = useCallback(async () => {
         setLoading(true);

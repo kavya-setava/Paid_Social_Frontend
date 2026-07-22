@@ -35,6 +35,8 @@ export const notificationApi = {
   list: () => http.get("/notifications").then((r) => r.data),
   // PATCH /notifications/read → mark all read
   markAllRead: () => http.patch("/notifications/read", {}).then((r) => r.data),
+  // DELETE /notifications/:id → dismiss one
+  remove: (id) => http.delete(`/notifications/${id}`).then((r) => r.data),
 };
 
 /* ============================== QM ============================== */

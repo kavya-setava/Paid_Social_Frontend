@@ -7,6 +7,7 @@ import { normalizeList, mapCounts, QM_TAB_QUERY } from '../../../utils/tickets';
 import { toastSuccess, toastError } from '../../../utils/toast';
 import usePaidSocket from '../../../hooks/usePaidSocket';
 import useClientTable from '../../../hooks/useClientTable';
+import useOperators from '../../../hooks/useOperators';
 import { PaidSearch, PaidPagination } from '../../../components/PaidTableControls';
 import EditTicketModal from '../../../components/EditTicketModal';
 import './Tickets.css';
@@ -16,7 +17,6 @@ const Tickets = () => {
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(false);
     const [counts, setCounts] = useState({});
-    const [operators, setOperators] = useState([]);
     const [assigningId, setAssigningId] = useState(null);
     const [autoAssigning, setAutoAssigning] = useState(false);
     const [editTicket, setEditTicket] = useState(null);
@@ -27,13 +27,8 @@ const Tickets = () => {
     // Client-side search (all columns) + 10-per-page pagination.
     const { query, setQuery, page, setPage, total, totalPages, pageRows } = useClientTable(tickets, 10);
 
-    // Load the region's agent roster once (for the assign dropdown).
-    useEffect(() => {
-        qmApi
-            .getOperators('AGENT')
-            .then((res) => setOperators(res?.data || []))
-            .catch(() => setOperators([]));
-    }, []);
+    // Region agent roster — live-refreshes when anyone's presence changes.
+    const operators = useOperators(() => qmApi.getOperators('AGENT'));
 
     const fetchTickets = useCallback(async () => {
         setLoading(true);

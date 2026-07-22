@@ -5,6 +5,7 @@ import { normalizeList, isUnavailable, operatorLabel } from '../../../utils/tick
 import { toastSuccess, toastError } from '../../../utils/toast';
 import usePaidSocket from '../../../hooks/usePaidSocket';
 import useClientTable from '../../../hooks/useClientTable';
+import useOperators from '../../../hooks/useOperators';
 import { PaidSearch, PaidPagination } from '../../../components/PaidTableControls';
 import WorkHistoryModal from '../../../components/WorkHistoryModal';
 import './Rework.css';
@@ -42,18 +43,11 @@ const REWORK_COLUMNS = [
 const Rework = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [operators, setOperators] = useState([]);
   const [assigningId, setAssigningId] = useState(null);
   const [history, setHistory] = useState(null); // { ticketId, role, title }
 
   const { query, setQuery, page, setPage, total, totalPages, pageRows } = useClientTable(tasks, 10);
-
-  useEffect(() => {
-    qmApi
-      .getOperators('AGENT')
-      .then((res) => setOperators(res?.data || []))
-      .catch(() => setOperators([]));
-  }, []);
+  const operators = useOperators(() => qmApi.getOperators('AGENT'));
 
   const fetchRework = useCallback(async () => {
     setLoading(true);

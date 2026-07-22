@@ -11,6 +11,7 @@ import {
 import { toastSuccess, toastError } from '../../utils/toast';
 import usePaidSocket from '../../hooks/usePaidSocket';
 import useClientTable from '../../hooks/useClientTable';
+import useOperators from '../../hooks/useOperators';
 import { PaidSearch, PaidPagination } from '../../components/PaidTableControls';
 import WorkHistoryModal from '../../components/WorkHistoryModal';
 import { CI_CARDS } from './ciConstants';
@@ -70,19 +71,20 @@ const CalendarInviteView = ({ role }) => {
   const [counts, setCounts] = useState({});
   const [loading, setLoading] = useState(false);
   const [busyId, setBusyId] = useState(null);
-  const [roster, setRoster] = useState([]); // agents (QM) or QCers (QC)
   const [history, setHistory] = useState(null); // { ticketId, role, title }
+
+  // Roster for the assign dropdowns — live-refreshes on presence change.
+  const roster = useOperators(() =>
+    role === 'QM' ? qmApi.getOperators('AGENT')
+      : role === 'QC' ? qcApi.getQcers()
+        : Promise.resolve({ data: [] })
+  );
 
   // Client-side search (all columns) + 10-per-page pagination.
   const { query, setQuery, page, setPage, total, totalPages, pageRows } = useClientTable(tickets, 10);
 
   const statusRef = useRef(activeStatus);
   statusRef.current = activeStatus;
-
-  useEffect(() => {
-    if (role === 'QM') qmApi.getOperators('AGENT').then((r) => setRoster(r?.data || [])).catch(() => setRoster([]));
-    else if (role === 'QC') qcApi.getQcers().then((r) => setRoster(r?.data || [])).catch(() => setRoster([]));
-  }, [role]);
 
   const fetchList = useCallback(async () => {
     setLoading(true);
