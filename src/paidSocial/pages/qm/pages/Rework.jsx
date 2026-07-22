@@ -38,7 +38,7 @@ const REWORK_COLUMNS = [
   { label: "QC'er", key: 'qcer' }, // + QC history icon
   { label: 'QC Status', key: 'qcStatus' },
   { label: 'QC Comments', key: 'qcComments' },
-  { label: 'Rejection Type', key: 'rejectionType' },
+  { label: 'Rejected Type', key: 'rejectionType' },
 ];
 
 const Rework = () => {

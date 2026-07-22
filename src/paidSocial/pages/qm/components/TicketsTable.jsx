@@ -312,15 +312,17 @@ const COLUMN_MAP = {
 // (right of Ad Name) into any column list — so every tab gets them without
 // editing each array above.
 const injectColumns = (cols, activeStatus) => {
-    const withRejType = activeStatus === 'all' || activeStatus === 'rework';
     const out = [];
     cols.forEach((c) => {
         out.push(c);
         if (c.key === 'adName') out.push({ label: 'Socialite Link', key: 'socialiteLink' });
         if (c.key === 'region') out.push({ label: 'Country', key: 'country' });
         if (c.key === 'qcThread') out.push({ label: 'Tactical Link', key: 'tacticalLink' });
-        if (c.key === 'qcComments' && withRejType) out.push({ label: 'Rejection Type', key: 'rejectionType' });
     });
+    // Dedicated "Rejected Type" column on the All + Rework tabs (QM view).
+    if (activeStatus === 'all' || activeStatus === 'rework') {
+        out.push({ label: 'Rejected Type', key: 'rejectionType' });
+    }
     return out;
 };
 

@@ -39,7 +39,7 @@ const TAIL_COLUMN_DEFS = {
   qcer: { key: 'qcer', label: "QC'er" },
   qcStatus: { key: 'qcStatus', label: 'QC Status' },
   qcComment: { key: 'qcComments', label: 'QC Comments' },
-  rejectionType: { key: 'rejectionType', label: 'Rejection Type' },
+  rejectionType: { key: 'rejectionType', label: 'Rejected Type' },
 };
 
 const EDITABLE_TABS = ['all', 'trafficked'];
