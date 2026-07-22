@@ -311,13 +311,15 @@ const COLUMN_MAP = {
 // Injects the Country column (right of Region) and Socialite Link column
 // (right of Ad Name) into any column list — so every tab gets them without
 // editing each array above.
-const injectColumns = (cols) => {
+const injectColumns = (cols, activeStatus) => {
+    const withRejType = activeStatus === 'all' || activeStatus === 'rework';
     const out = [];
     cols.forEach((c) => {
         out.push(c);
         if (c.key === 'adName') out.push({ label: 'Socialite Link', key: 'socialiteLink' });
         if (c.key === 'region') out.push({ label: 'Country', key: 'country' });
         if (c.key === 'qcThread') out.push({ label: 'Tactical Link', key: 'tacticalLink' });
+        if (c.key === 'qcComments' && withRejType) out.push({ label: 'Rejection Type', key: 'rejectionType' });
     });
     return out;
 };
@@ -345,7 +347,7 @@ const TicketsTable = ({
     }
 
     // Fallback cleanly to 'all' headers if the dynamic key isn't registered.
-    const currentColumns = injectColumns(COLUMN_MAP[activeStatus] || COLUMN_MAP.all);
+    const currentColumns = injectColumns(COLUMN_MAP[activeStatus] || COLUMN_MAP.all, activeStatus);
     const canAssign = ASSIGNABLE_TABS.includes(activeStatus);
     const showHistoryIcons = activeStatus === 'all';
     const showEdit = !!onEdit && EDITABLE_TABS.includes(activeStatus);

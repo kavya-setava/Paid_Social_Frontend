@@ -63,7 +63,7 @@ const All = () => {
         onPick: run((id) => qcApi.pick(id), 'Picked — moved to your Ready to QC'),
         onStart: run((id) => qcApi.start(id), 'QC started — timer running'),
         onApprove: run((id) => qcApi.approve(id), 'Approved & trafficked'),
-        onReject: run((id, feedback) => qcApi.reject(id, feedback), 'Sent back for rework'),
+        onReject: run((id, feedback, rejectionType) => qcApi.reject(id, feedback, rejectionType), 'Sent back for rework'),
         onHold: run((id, note) => qcApi.hold(id, 'HOLD', note), 'On hold — timer paused'),
         onResume: run((id) => qcApi.resume(id), 'Resumed — QC timer running'),
     };

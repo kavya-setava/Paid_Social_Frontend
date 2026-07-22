@@ -39,6 +39,7 @@ const TAIL_COLUMN_DEFS = {
   qcer: { key: 'qcer', label: "QC'er" },
   qcStatus: { key: 'qcStatus', label: 'QC Status' },
   qcComment: { key: 'qcComments', label: 'QC Comments' },
+  rejectionType: { key: 'rejectionType', label: 'Rejection Type' },
 };
 
 const EDITABLE_TABS = ['all', 'trafficked'];
@@ -77,9 +78,13 @@ const TicketsTable = ({
   onFieldSave = null,     // (id, key, value) => void — inline QC Thread / Tactical Link
 }) => {
   // Tactical Link sits right after QC Thread in every tab.
-  const tailKeys = (TAB_TAIL[activeStatus] || FULL_TAIL).flatMap((k) =>
+  const baseTail = (TAB_TAIL[activeStatus] || FULL_TAIL).flatMap((k) =>
     k === 'qcThread' ? ['qcThread', 'tacticalLink'] : [k]
   );
+  // Rejection Type shows on the All + Rework tabs.
+  const tailKeys = (activeStatus === 'all' || activeStatus === 'rework')
+    ? [...baseTail, 'rejectionType']
+    : baseTail;
   const tailColumns = tailKeys.map((k) => TAIL_COLUMN_DEFS[k]);
   const showActions = ACTION_TABS.includes(activeStatus) || mode === 'bucket';
   // Per-person history icons on Operator / QC'er — shown in the rework views.

@@ -223,6 +223,7 @@ export const normalizeTicket = (t = {}) => {
     qcer: qcName,
     qcEr: qcName,
     qcStatus: t.qcStatus || taskStatus,
+    rejectionType: t.rejectionType || "",
     qcComments: t.qcObservations || t.qcNotes || "",
     qcObservations: t.qcObservations || "",
     reworkReason: t.qcObservations || t.qcNotes || "",

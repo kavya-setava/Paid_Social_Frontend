@@ -40,12 +40,12 @@ const StatusActionCell = ({ ticket, mode = 'mine', busy = false, onStart, onHold
         <div className="action-group qc-reject-group">
           <textarea
             className="rejection-input"
-            placeholder="Reason for putting on hold (optional)…"
+            placeholder="Reason for putting on hold (required)…"
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
           <div className="action-group">
-            <button type="button" className="action-btn action-btn-primary" disabled={busy}
+            <button type="button" className="action-btn action-btn-primary" disabled={busy || !text.trim()}
               onClick={() => { onHold(id, text.trim()); cancel(); }}>
               Confirm hold
             </button>
@@ -59,12 +59,12 @@ const StatusActionCell = ({ ticket, mode = 'mine', busy = false, onStart, onHold
         <div className="action-group qc-reject-group">
           <textarea
             className="rejection-input"
-            placeholder="Note for QC (optional)…"
+            placeholder="Note for QC (required)…"
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
           <div className="action-group">
-            <button type="button" className="action-btn action-btn-primary" disabled={busy}
+            <button type="button" className="action-btn action-btn-primary" disabled={busy || !text.trim()}
               onClick={() => { onSubmit(id, text.trim()); cancel(); }}>
               Confirm submit
             </button>

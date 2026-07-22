@@ -89,9 +89,9 @@ export const qcApi = {
   start: (id) => http.patch(`/tickets/${id}/qc-start`, {}).then((r) => r.data),
   approve: (id, note = "", qcObservations = "") =>
     http.patch(`/tickets/${id}/qc-approve`, { note, qcObservations }).then((r) => r.data),
-  reject: (id, feedback, errorTags = [], qcObservations = "") =>
+  reject: (id, feedback, rejectionType) =>
     http
-      .patch(`/tickets/${id}/qc-reject`, { feedback, errorTags, qcObservations })
+      .patch(`/tickets/${id}/qc-reject`, { feedback, rejectionType })
       .then((r) => r.data),
   hold: (id, type = "HOLD", note = "") =>
     http.patch(`/tickets/${id}/hold`, { type, note }).then((r) => r.data),

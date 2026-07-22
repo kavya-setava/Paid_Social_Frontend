@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { STATUS } from '../../../utils/tickets';
 
-// QC work actions, gated by live status + ownership (PaidSocial-API-Docs §8):
-//   READY_TO_QC, unclaimed      -> Pick   (claim; stays READY_TO_QC)
-//   READY_TO_QC, claimed by me  -> Start QC (READY_TO_QC → IN_QC, timer starts)
-//   READY_TO_QC, claimed by other -> "Picked by <name>"
-//   IN_QC (mine)                -> Hold, Approve, Reject (reject needs a comment)
-//   ON_HOLD (mine, QC hold)     -> Resume
+// Mandatory rejection-type options (QC must pick one when rejecting).
+export const REJECTION_TYPES = [
+  'Incorrect ODP ID', 'Video (External)', 'Video (Internal)', 'Wrong Link',
+  'Creative Name', 'Ad Headline', 'Ad Copy', 'CTA', 'Companion Banner',
+  'Ad Name', 'Page Handle', 'Ad Tracking', 'Display URL', 'Comms',
+];
+
+// QC work actions, gated by live status + ownership.
 const QcActionCell = ({ ticket, myId, busy = false, onPick, onStart, onApprove, onReject, onHold, onResume }) => {
   const status = ticket._raw?.status || ticket.status;
   const id = ticket.id;
@@ -15,12 +17,13 @@ const QcActionCell = ({ ticket, myId, busy = false, onPick, onStart, onApprove, 
 
   const [panel, setPanel] = useState(null); // 'reject' | 'hold' | null
   const [text, setText] = useState('');
-  const openPanel = (p) => { setPanel(p); setText(''); };
-  const closePanel = () => { setPanel(null); setText(''); };
+  const [rejType, setRejType] = useState('');
+  const openPanel = (p) => { setPanel(p); setText(''); setRejType(''); };
+  const closePanel = () => { setPanel(null); setText(''); setRejType(''); };
 
   const confirmReject = () => {
-    if (!text.trim()) return;
-    onReject(id, text.trim());
+    if (!text.trim() || !rejType) return; // both mandatory
+    onReject(id, text.trim(), rejType);
     closePanel();
   };
   const confirmHold = () => {
@@ -48,7 +51,6 @@ const QcActionCell = ({ ticket, myId, busy = false, onPick, onStart, onApprove, 
   }
 
   if (status === STATUS.ON_HOLD) {
-    // Only the QC who holds it (returns to IN_QC) may resume.
     if (mine && ticket._raw?.holdReturnStatus === 'IN_QC') {
       return (
         <button type="button" className="action-btn action-btn-primary" disabled={busy} onClick={() => onResume(id)}>
@@ -60,13 +62,16 @@ const QcActionCell = ({ ticket, myId, busy = false, onPick, onStart, onApprove, 
   }
 
   if (status === STATUS.IN_QC && mine) {
-    if (panel === 'reject' || panel === 'hold') {
-      const isReject = panel === 'reject';
+    if (panel === 'reject') {
       return (
         <div className="action-group qc-reject-group">
+          <select className="rejection-input" value={rejType} onChange={(e) => setRejType(e.target.value)}>
+            <option value="">Select rejection type…</option>
+            {REJECTION_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
           <textarea
             className="rejection-input"
-            placeholder={isReject ? 'Rejection comment (required)…' : 'Reason for hold (required)…'}
+            placeholder="Rejection comment (required)…"
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
@@ -74,14 +79,30 @@ const QcActionCell = ({ ticket, myId, busy = false, onPick, onStart, onApprove, 
             <button
               type="button"
               className="action-btn action-btn-primary"
-              disabled={busy || !text.trim()}
-              onClick={isReject ? confirmReject : confirmHold}
+              disabled={busy || !text.trim() || !rejType}
+              onClick={confirmReject}
             >
-              {isReject ? 'Confirm reject' : 'Confirm hold'}
+              Confirm reject
             </button>
-            <button type="button" className="action-btn action-btn-secondary" onClick={closePanel}>
-              Cancel
+            <button type="button" className="action-btn action-btn-secondary" onClick={closePanel}>Cancel</button>
+          </div>
+        </div>
+      );
+    }
+    if (panel === 'hold') {
+      return (
+        <div className="action-group qc-reject-group">
+          <textarea
+            className="rejection-input"
+            placeholder="Reason for hold (required)…"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+          <div className="action-group">
+            <button type="button" className="action-btn action-btn-primary" disabled={busy || !text.trim()} onClick={confirmHold}>
+              Confirm hold
             </button>
+            <button type="button" className="action-btn action-btn-secondary" onClick={closePanel}>Cancel</button>
           </div>
         </div>
       );
