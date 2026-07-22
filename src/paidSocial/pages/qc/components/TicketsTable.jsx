@@ -33,6 +33,7 @@ const COLUMNS = [
     { key: 'tacticalLink', label: 'Tactical Link' },
     { key: 'qcer', label: "QC'er" },
     { key: 'qcComments', label: 'QC Comments' },
+    { key: 'rejectionType', label: 'Rejected Type' },
 ];
 
 // QC tickets table used by both the ALL overview and My Dashboard.

@@ -299,6 +299,8 @@
     font-family: inherit;
 }
 .rejection-input:focus { outline: none; border-color: #e50914; }
+/* the rejection-type <select> shouldn't be tall like the comment textarea */
+select.rejection-input { min-height: 0; height: 34px; cursor: pointer; }
 .qc-tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .qc-tag {
     display: inline-flex;
