@@ -20,7 +20,17 @@ export default function useClientTable(rows, pageSize = 10) {
     );
   }, [rows, query]);
 
-  const total = filtered.length;
+  // Order by Publish Date — soonest/nearest first; tickets without a date last.
+  const sorted = useMemo(() => {
+    const ms = (r) => {
+      const d = r?._ticket?.publishDatePST;
+      const t = d ? new Date(d).getTime() : NaN;
+      return Number.isNaN(t) ? Infinity : t;
+    };
+    return [...filtered].sort((a, b) => ms(a) - ms(b));
+  }, [filtered]);
+
+  const total = sorted.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   // Reset to a valid page whenever the result set shrinks.
@@ -28,7 +38,7 @@ export default function useClientTable(rows, pageSize = 10) {
     if (page > totalPages) setPage(1);
   }, [totalPages, page]);
 
-  const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const pageRows = sorted.slice((page - 1) * pageSize, page * pageSize);
 
   return { query, setQuery, page, setPage, total, totalPages, pageRows };
 }
