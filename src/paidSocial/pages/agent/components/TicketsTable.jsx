@@ -169,7 +169,6 @@ const TicketsTable = ({
       <table className="qm-table">
         <thead>
           <tr>
-            {showEdit && <th>Edit</th>}
             <th>Ticket ID</th>
             <th>Campaign</th>
             {BASE_COLUMNS.map((col) => <th key={col.key}>{col.label}</th>)}
@@ -179,6 +178,7 @@ const TicketsTable = ({
             <th>Operator Time</th>
             {tailColumns.map((col) => <th key={col.key}>{col.label}</th>)}
             {showActions && <th>Actions</th>}
+            {showEdit && <th>Edit</th>}
           </tr>
         </thead>
         <tbody>
@@ -189,13 +189,6 @@ const TicketsTable = ({
           ) : (
             tickets.map((ticket) => (
               <tr key={ticket.id}>
-                {showEdit && (
-                  <td>
-                    <button type="button" className="ps-edit-btn" title="Edit ticket" onClick={() => onEdit(ticket)}>
-                      <Pencil size={14} />
-                    </button>
-                  </td>
-                )}
                 <td className="bold-text">{ticket.ticketId}</td>
                 <td>{ticket.campaignName || '—'}</td>
                 {BASE_COLUMNS.map((col) => <td key={col.key}>{renderValue(ticket, col.key)}</td>)}
@@ -248,6 +241,13 @@ const TicketsTable = ({
                       onSubmit={actions.onSubmit}
                       onPick={actions.onPick}
                     />
+                  </td>
+                )}
+                {showEdit && (
+                  <td>
+                    <button type="button" className="ps-edit-btn" title="Edit ticket" onClick={() => onEdit(ticket)}>
+                      <Pencil size={14} />
+                    </button>
                   </td>
                 )}
               </tr>

@@ -9,6 +9,7 @@ import {
 } from '../api/session';
 import { toastError, toastSuccess } from '../utils/toast';
 import { fmtDateTime } from '../utils/tickets';
+import { requestDesktopPermission, showDesktopNotification } from '../utils/desktopNotify';
 import PresenceOverlay from './PresenceOverlay';
 import './PaidHeader.css';
 
@@ -57,8 +58,12 @@ const PaidHeader = ({ title = 'Ticket Management System' }) => {
   }, []);
 
   useEffect(() => {
+    requestDesktopPermission();
     loadNotifs();
-    const onNotif = () => loadNotifs();
+    const onNotif = (evt) => {
+      loadNotifs();
+      if (evt?.message) showDesktopNotification(evt.message); // OS desktop popup
+    };
     socket.on('PAID_NOTIFICATION', onNotif);
     return () => socket.off('PAID_NOTIFICATION', onNotif);
   }, [loadNotifs]);
@@ -85,6 +90,7 @@ const PaidHeader = ({ title = 'Ticket Management System' }) => {
   const toggleBreak = () => { if (isOnline) applyPresence({ isOnBreak: !isOnBreak }); };
 
   const openBell = async () => {
+    requestDesktopPermission(); // gesture-backed permission fallback
     const next = !bellOpen;
     setBellOpen(next);
     if (next && unread > 0) {

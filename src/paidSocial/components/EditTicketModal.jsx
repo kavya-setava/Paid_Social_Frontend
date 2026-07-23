@@ -21,19 +21,12 @@ const FIELDS = [
   { key: 'flightStart', label: 'AD Flight Start', type: 'datetime' },
   { key: 'flightEnd', label: 'AD Flight End', type: 'datetime' },
   { key: 'publishDatePST', label: 'Publish Date (PST)', type: 'datetime' },
-  { key: 'operator', label: 'Operator' },
-  { key: 'launchPriority', label: 'Launching Prioritization' },
   { key: 'priority', label: 'Priority', type: 'select', options: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'] },
   { key: 'socialiteLink', label: 'Socialite Link' },
   { key: 'tacticalLink', label: 'Tactical Link' },
   { key: 'qcThread', label: 'QC Thread' },
-  { key: 'qcStatus', label: 'QC Status' },
   { key: 'socialiteNotes', label: 'Socialite Notes', type: 'textarea' },
-  { key: 'traffickerComments', label: 'Trafficker Comments', type: 'textarea' },
-  { key: 'qcObservations', label: 'QC Observations', type: 'textarea' },
   { key: 'qmNotes', label: 'QM Notes', type: 'textarea' },
-  { key: 'agentNotes', label: 'Agent Notes', type: 'textarea' },
-  { key: 'qcNotes', label: 'QC Notes', type: 'textarea' },
 ];
 
 // ISO → value for a datetime-local input (local time).

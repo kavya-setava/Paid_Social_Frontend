@@ -383,10 +383,10 @@ const TicketsTable = ({
             <table className="qm-table">
                 <thead>
                     <tr>
-                        {showEdit && <th>Edit</th>}
                         {currentColumns.map((col, index) => (
                             <th key={index}>{col.label}</th>
                         ))}
+                        {showEdit && <th>Edit</th>}
                     </tr>
                 </thead>
                 <tbody>
@@ -399,13 +399,6 @@ const TicketsTable = ({
                     ) : (
                         tickets.map((ticket, tIdx) => (
                             <tr key={ticket.id || tIdx}>
-                                {showEdit && (
-                                    <td>
-                                        <button type="button" className="ps-edit-btn" title="Edit ticket" onClick={() => onEdit(ticket)}>
-                                            <Pencil size={14} />
-                                        </button>
-                                    </td>
-                                )}
                                 {currentColumns.map((col, cIdx) => {
                                     const cellValue = ticket[col.key];
 
@@ -469,6 +462,13 @@ const TicketsTable = ({
                                         </td>
                                     );
                                 })}
+                                {showEdit && (
+                                    <td>
+                                        <button type="button" className="ps-edit-btn" title="Edit ticket" onClick={() => onEdit(ticket)}>
+                                            <Pencil size={14} />
+                                        </button>
+                                    </td>
+                                )}
                             </tr>
                         ))
                     )}
