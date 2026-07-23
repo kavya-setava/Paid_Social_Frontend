@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import StatusCards from '../components/StatusCards';
 import TicketsTable from '../components/TicketsTable';
 import { qcApi, errMessage } from '../../../api/paidSocialApi';
@@ -28,22 +28,27 @@ const All = () => {
 
     const myId = getUser()?.id || null;
     const qcers = useOperators(() => qcApi.getQcers());
+    const reqIdRef = useRef(0);
 
-    const load = useCallback(async () => {
-        setLoading(true);
+    const load = useCallback(async (silent = false) => {
+        const reqId = ++reqIdRef.current;
+        if (!silent) setLoading(true);
         try {
             const res = await qcApi.getBoard({ limit: 200 });
+            if (reqId !== reqIdRef.current) return; // stale
             setBoard(normalizeList(res?.data || []).filter(isQcRelevant));
         } catch (err) {
-            toastError(errMessage(err, 'Failed to load the QC board'));
-            setBoard([]);
+            if (reqId === reqIdRef.current) {
+                toastError(errMessage(err, 'Failed to load the QC board'));
+                setBoard([]);
+            }
         } finally {
-            setLoading(false);
+            if (reqId === reqIdRef.current && !silent) setLoading(false);
         }
     }, []);
 
     useEffect(() => { load(); }, [load]);
-    usePaidSocket(() => load());
+    usePaidSocket(() => load(true));
 
     const run = (fn, msg) => async (...args) => {
         const id = args[0];
@@ -51,7 +56,7 @@ const All = () => {
         try {
             await fn(...args);
             toastSuccess(msg);
-            load();
+            load(true);
         } catch (err) {
             toastError(errMessage(err, 'Action failed'));
         } finally {
@@ -74,7 +79,7 @@ const All = () => {
         try {
             await qcApi.assign(id, qcId);
             toastSuccess('Assigned to QCer');
-            load();
+            load(true);
         } catch (err) {
             toastError(errMessage(err, 'Could not assign QCer'));
         } finally {

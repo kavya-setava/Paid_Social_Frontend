@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import StatusCards from '../components/StatusCards';
 import TicketsTable from '../components/TicketsTable';
-import { agentApi, ticketApi, errMessage } from '../../../api/paidSocialApi';
+import { agentApi, errMessage } from '../../../api/paidSocialApi';
 import { normalizeList, mapCounts } from '../../../utils/tickets';
 import { toastSuccess, toastError } from '../../../utils/toast';
 import usePaidSocket from '../../../hooks/usePaidSocket';
@@ -36,42 +36,36 @@ const Tickets = () => {
 
   const statusRef = useRef(activeStatus);
   statusRef.current = activeStatus;
+  const reqIdRef = useRef(0); // guards against stale (out-of-order) responses
 
   const { query, setQuery, page, setPage, total, totalPages, pageRows } = useClientTable(tickets, 10);
   // Region agent roster (transfer dropdown) — live-refreshes on presence change.
   const agents = useOperators(() => agentApi.getAgents());
 
-  const fetchTickets = useCallback(async () => {
-    setLoading(true);
+  const fetchTickets = useCallback(async (silent = false) => {
+    const reqId = ++reqIdRef.current;
+    const tab = statusRef.current;
+    if (!silent) setLoading(true);
     try {
-      const res = await agentApi.getTickets({ ...(AGENT_TAB_QUERY[statusRef.current] || {}), limit: 200 });
+      const [res, countsRes] = await Promise.all([
+        agentApi.getTickets({ ...(AGENT_TAB_QUERY[tab] || {}), limit: 200, counts: 'false' }),
+        agentApi.getCounts(),
+      ]);
+      if (reqId !== reqIdRef.current || tab !== statusRef.current) return; // stale
       setTickets(normalizeList(res?.data || []));
-
-      // ON_HOLD count from the envelope mixes agent + QC holds; split them.
-      const base = mapCounts(res?.counts || {});
-      try {
-        const [holdAgent, holdQc, completed] = await Promise.all([
-          agentApi.getTickets({ status: 'ON_HOLD', holdReturn: 'IN_PROGRESS', limit: 1 }),
-          agentApi.getTickets({ status: 'ON_HOLD', holdReturn: 'IN_QC', limit: 1 }),
-          agentApi.getTickets({ status: 'TRAFFICKED', ciCompleted: 'true', limit: 1 }),
-        ]);
-        base.onHold = holdAgent?.total ?? 0;
-        base.qcOnHold = holdQc?.total ?? 0;
-        const completedCount = completed?.total ?? 0;
-        base.completed = completedCount;
-        base.trafficked = Math.max(0, (res?.counts?.TRAFFICKED ?? 0) - completedCount);
-      } catch (_) { /* keep combined fallback */ }
-      setCounts(base);
+      setCounts(countsRes?.counts || mapCounts(res?.counts || {}));
     } catch (err) {
-      toastError(errMessage(err, 'Failed to load your tickets'));
-      setTickets([]);
+      if (reqId === reqIdRef.current) {
+        toastError(errMessage(err, 'Failed to load your tickets'));
+        setTickets([]);
+      }
     } finally {
-      setLoading(false);
+      if (reqId === reqIdRef.current && !silent) setLoading(false);
     }
   }, []);
 
   useEffect(() => { fetchTickets(); }, [activeStatus, fetchTickets]);
-  usePaidSocket(() => fetchTickets());
+  usePaidSocket(() => fetchTickets(true));
 
   // Wrap a lifecycle action with busy state, toast + refresh.
   const run = (fn, successMsg) => async (...args) => {
@@ -80,7 +74,7 @@ const Tickets = () => {
     try {
       await fn(...args);
       toastSuccess(successMsg);
-      fetchTickets();
+      fetchTickets(true);
     } catch (err) {
       toastError(errMessage(err, 'Action failed'));
     } finally {
@@ -92,18 +86,7 @@ const Tickets = () => {
     onStart: run((id) => agentApi.start(id), 'Work started — timer running'),
     onHold: run((id, note) => agentApi.hold(id, 'HOLD', note), 'Ticket put on hold'),
     onResume: run((id) => agentApi.resume(id), 'Work resumed — timer running'),
-    onSubmit: run((id, note) => agentApi.submit(id, note), 'Submitted to QC'),
-  };
-
-  // Inline save for agent-editable cells (QC Thread / Tactical Link).
-  const handleFieldSave = async (id, key, value) => {
-    try {
-      await ticketApi.updateFields(id, { [key]: value });
-      toastSuccess('Saved');
-      fetchTickets();
-    } catch (err) {
-      toastError(errMessage(err, 'Could not save'));
-    }
+    onSubmit: run((id, note, qcThread, tacticalLink) => agentApi.submit(id, note, qcThread, tacticalLink), 'Submitted to QC'),
   };
 
   const handleTransfer = async (ticketId, agentId) => {
@@ -112,7 +95,7 @@ const Tickets = () => {
     try {
       await agentApi.transfer(ticketId, agentId);
       toastSuccess('Ticket transferred to agent');
-      fetchTickets();
+      fetchTickets(true);
     } catch (err) {
       toastError(errMessage(err, 'Could not transfer ticket'));
     } finally {
@@ -135,7 +118,6 @@ const Tickets = () => {
         transferringId={transferringId}
         onTransfer={handleTransfer}
         onEdit={setEditTicket}
-        onFieldSave={handleFieldSave}
       />
       <PaidPagination page={page} totalPages={totalPages} total={total} onPage={setPage} />
 

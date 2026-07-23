@@ -38,25 +38,30 @@ const MyDashboard = () => {
     const myId = getUser()?.id || null;
     const statusRef = useRef(activeStatus);
     statusRef.current = activeStatus;
+    const reqIdRef = useRef(0); // guards against stale (out-of-order) responses
 
     const { query, setQuery, page, setPage, total, totalPages, pageRows } = useClientTable(tickets, 10);
     const qcers = useOperators(() => qcApi.getQcers());
 
-    const loadList = useCallback(async () => {
-        setLoading(true);
+    const loadList = useCallback(async (silent = false) => {
+        const reqId = ++reqIdRef.current;
+        const tab = statusRef.current;
+        if (!silent) setLoading(true);
         try {
-            const tab = statusRef.current;
             const query =
                 tab === 'trafficked' ? { status: 'TRAFFICKED', ciCompleted: 'false' }
                     : tab === 'completed' ? { status: 'TRAFFICKED', ciCompleted: 'true' }
                         : { status: TAB_STATUS[tab] };
             const res = await qcApi.getMyTickets(query);
+            if (reqId !== reqIdRef.current || tab !== statusRef.current) return; // stale
             setTickets(normalizeList(res?.data || []));
         } catch (err) {
-            toastError(errMessage(err, 'Failed to load tickets'));
-            setTickets([]);
+            if (reqId === reqIdRef.current) {
+                toastError(errMessage(err, 'Failed to load tickets'));
+                setTickets([]);
+            }
         } finally {
-            setLoading(false);
+            if (reqId === reqIdRef.current && !silent) setLoading(false);
         }
     }, []);
 
@@ -79,10 +84,10 @@ const MyDashboard = () => {
         } catch (_) { /* counts are best-effort */ }
     }, []);
 
-    const refresh = useCallback(() => { loadList(); loadCounts(); }, [loadList, loadCounts]);
+    const refresh = useCallback((silent = false) => { loadList(silent); loadCounts(); }, [loadList, loadCounts]);
 
     useEffect(() => { refresh(); }, [activeStatus, refresh]);
-    usePaidSocket(() => refresh());
+    usePaidSocket(() => refresh(true));
 
     const run = (fn, msg) => async (...args) => {
         const id = args[0];
@@ -90,7 +95,7 @@ const MyDashboard = () => {
         try {
             await fn(...args);
             toastSuccess(msg);
-            refresh();
+            refresh(true);
         } catch (err) {
             toastError(errMessage(err, 'Action failed'));
         } finally {
@@ -112,7 +117,7 @@ const MyDashboard = () => {
         try {
             await qcApi.assign(id, qcId);
             toastSuccess('Assigned to QCer');
-            refresh();
+            refresh(true);
         } catch (err) {
             toastError(errMessage(err, 'Could not assign QCer'));
         } finally {

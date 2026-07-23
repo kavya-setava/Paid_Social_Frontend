@@ -1,8 +1,9 @@
 .qm-dashboard-layout {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  background-color: #050505; /* Pitch black canvas matching your login block container */
+  height: 100vh;
+  overflow: hidden;
+  background-color: #050505;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: #ffffff;
 }
@@ -10,11 +11,39 @@
 .dashboard-body {
   display: flex;
   flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .dashboard-content-area {
   flex: 1;
   padding: 24px;
-  overflow-y: auto;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
+
+.dashboard-content-area > * {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-content-area .table-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.dashboard-content-area .status-cards-container,
+.dashboard-content-area .ps-search-bar,
+.dashboard-content-area .ps-toolbar,
+.dashboard-content-area .ps-pagination,
+.dashboard-content-area .rework-title {
+  flex: 0 0 auto;
+}
+
+.qm-sidebar { overflow-y: auto; }

@@ -442,16 +442,15 @@ const TicketsTable = ({
                                     if (col.key === 'operator') return renderPeopleCell(ticket, cIdx, cellValue, 'AGENT');
                                     if (col.key === 'qcer') return renderPeopleCell(ticket, cIdx, cellValue, 'QC');
 
-                                    // Link-style columns → show "Link" when the value is a URL.
+                                    // Link-style columns → always render a clickable "Link".
                                     if (col.key === 'socialiteLink' || col.key === 'tacticalLink' || col.key === 'qcThread') {
-                                        const isUrl = cellValue && /^https?:\/\//i.test(cellValue);
                                         return (
                                             <td key={cIdx}>
-                                                {!cellValue ? '-' : isUrl ? (
+                                                {cellValue ? (
                                                     <a className="ps-link" href={cellValue} target="_blank" rel="noreferrer">
                                                         Link
                                                     </a>
-                                                ) : String(cellValue)}
+                                                ) : '-'}
                                             </td>
                                         );
                                     }

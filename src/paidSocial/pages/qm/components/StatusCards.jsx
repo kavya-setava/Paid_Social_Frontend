@@ -6,15 +6,15 @@ const STATUS_TYPES = [
   { key: 'all', label: 'All', color: '#64748b' },
   { key: 'rttUnassigned', label: 'RTT (Unassigned)', color: '#ef4444' },
   { key: 'rttAssigned', label: 'RTT (Assigned)', color: '#f97316' },
-  { key: 'inProgress', label: 'In Progress', color: '#3b82f6' },
-  { key: 'onHold', label: 'On Hold', color: '#6b7280' },
-  { key: 'qcOnHold', label: 'QC On Hold', color: '#a855f7' },
-  { key: 'readyToQc', label: 'Ready to QC', color: '#8b5cf6' },
-  { key: 'inQc', label: 'In QC', color: '#ec4899' },
+  { key: 'inProgress', label: 'IN PROGRESS', color: '#3b82f6' },
+  { key: 'onHold', label: 'ON HOLD', color: '#6b7280' },
+  { key: 'qcOnHold', label: 'QC ON HOLD', color: '#a855f7' },
+  { key: 'readyToQc', label: 'READY TO QC', color: '#8b5cf6' },
+  { key: 'inQc', label: 'IN QC', color: '#ec4899' },
   // { key: 'rejected', label: 'Rejected', color: '#c22c2c' },
-  { key: 'trafficked', label: 'Trafficked', color: '#10b981' },
-  { key: 'completed', label: 'Completed', color: '#22c55e' },
-  { key: 'rework', label: 'Rework', color: '#c41a04' },
+  { key: 'trafficked', label: 'TRAFFICKED', color: '#10b981' },
+  { key: 'completed', label: 'COMPLETED', color: '#22c55e' },
+  { key: 'rework', label: 'REWORK', color: '#c41a04' },
 ];
 
 const StatusCards = ({ counts = {}, activeStatus = 'all', onStatusSelect }) => {

@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { STATUS } from '../../../utils/tickets';
+import { STATUS, isValidLink } from '../../../utils/tickets';
 
 // Agent work actions, gated by live status (PaidSocial-API-Docs.md §4):
 //   RTT / REJECTED (mine)   -> Start
 //   REJECTED (bucket)       -> Pick   (mode="bucket")
 //   IN_PROGRESS             -> Hold (with reason), Submit to QC (with note)
 //   ON_HOLD (mine, agent)   -> Resume
-const StatusActionCell = ({ ticket, mode = 'mine', busy = false, onStart, onHold, onResume, onSubmit, onPick }) => {
+const StatusActionCell = ({
+  ticket, mode = 'mine', busy = false,
+  qcThread = '', tacticalLink = '', // inline drafts (saved on submit)
+  onStart, onHold, onResume, onSubmit, onPick,
+}) => {
   const status = ticket._raw?.status || ticket.status;
   const holdReturn = ticket._raw?.holdReturnStatus;
   const id = ticket.id;
@@ -55,6 +59,7 @@ const StatusActionCell = ({ ticket, mode = 'mine', busy = false, onStart, onHold
       );
     }
     if (panel === 'submit') {
+      const linksOk = isValidLink(qcThread) && isValidLink(tacticalLink);
       return (
         <div className="action-group qc-reject-group">
           <textarea
@@ -63,9 +68,14 @@ const StatusActionCell = ({ ticket, mode = 'mine', busy = false, onStart, onHold
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
+          {!linksOk && (
+            <span className="action-note" style={{ color: '#f87171' }}>
+              Enter a valid QC Thread &amp; Tactical Link (http/https) first.
+            </span>
+          )}
           <div className="action-group">
-            <button type="button" className="action-btn action-btn-primary" disabled={busy || !text.trim()}
-              onClick={() => { onSubmit(id, text.trim()); cancel(); }}>
+            <button type="button" className="action-btn action-btn-primary" disabled={busy || !text.trim() || !linksOk}
+              onClick={() => { onSubmit(id, text.trim(), qcThread.trim(), tacticalLink.trim()); cancel(); }}>
               Confirm submit
             </button>
             <button type="button" className="action-btn action-btn-secondary" onClick={cancel}>Cancel</button>
@@ -101,6 +111,8 @@ StatusActionCell.propTypes = {
   ticket: PropTypes.object.isRequired,
   mode: PropTypes.oneOf(['mine', 'bucket']),
   busy: PropTypes.bool,
+  qcThread: PropTypes.string,
+  tacticalLink: PropTypes.string,
   onStart: PropTypes.func,
   onHold: PropTypes.func,
   onResume: PropTypes.func,

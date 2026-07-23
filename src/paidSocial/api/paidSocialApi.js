@@ -43,6 +43,8 @@ export const notificationApi = {
 export const qmApi = {
   // GET /tickets/qm/tickets ?status ?assigned ?search ?page ?limit
   getTickets: (params = {}) => http.get(`/tickets/qm/tickets${qs(params)}`).then((r) => r.data),
+  // GET /tickets/qm/counts — all card counts in one call
+  getCounts: () => http.get('/tickets/qm/counts').then((r) => r.data),
   // GET /tickets/operators ?role=AGENT|QC
   getOperators: (role = "AGENT") =>
     http.get(`/tickets/operators${qs({ role })}`).then((r) => r.data),
@@ -57,11 +59,14 @@ export const qmApi = {
 export const agentApi = {
   // GET /tickets/agent/tickets ?status ?search ?page ?limit
   getTickets: (params = {}) => http.get(`/tickets/agent/tickets${qs(params)}`).then((r) => r.data),
+  // GET /tickets/agent/counts — all card counts (scoped to me) in one call
+  getCounts: () => http.get('/tickets/agent/counts').then((r) => r.data),
   start: (id, note = "") => http.patch(`/tickets/${id}/start`, { note }).then((r) => r.data),
   hold: (id, type = "HOLD", note = "") =>
     http.patch(`/tickets/${id}/hold`, { type, note }).then((r) => r.data),
   resume: (id, note = "") => http.patch(`/tickets/${id}/resume`, { note }).then((r) => r.data),
-  submit: (id, note = "") => http.patch(`/tickets/${id}/submit`, { note }).then((r) => r.data),
+  submit: (id, note = "", qcThread, tacticalLink) =>
+    http.patch(`/tickets/${id}/submit`, { note, qcThread, tacticalLink }).then((r) => r.data),
   pickRework: (id) => http.patch(`/tickets/rework/${id}/pick`, {}).then((r) => r.data),
   // Transfer my RTT ticket to another agent in the region.
   transfer: (id, agentId, note = "") =>

@@ -85,27 +85,32 @@ const CalendarInviteView = ({ role }) => {
 
   const statusRef = useRef(activeStatus);
   statusRef.current = activeStatus;
+  const reqIdRef = useRef(0); // guards against stale (out-of-order) responses
 
-  const fetchList = useCallback(async () => {
-    setLoading(true);
+  const fetchList = useCallback(async (silent = false) => {
+    const reqId = ++reqIdRef.current;
+    const st = statusRef.current;
+    if (!silent) setLoading(true);
     try {
-      const st = statusRef.current;
       const res = await calendarApi.getList({
         status: st === 'all' ? undefined : st,
         limit: 200,
       });
+      if (reqId !== reqIdRef.current || st !== statusRef.current) return; // stale
       setTickets(normalizeList(res?.data || []));
       setCounts(res?.counts || {});
     } catch (err) {
-      toastError(errMessage(err, 'Failed to load calendar invites'));
-      setTickets([]);
+      if (reqId === reqIdRef.current) {
+        toastError(errMessage(err, 'Failed to load calendar invites'));
+        setTickets([]);
+      }
     } finally {
-      setLoading(false);
+      if (reqId === reqIdRef.current && !silent) setLoading(false);
     }
   }, []);
 
   useEffect(() => { fetchList(); }, [activeStatus, fetchList]);
-  usePaidSocket(() => fetchList());
+  usePaidSocket(() => fetchList(true));
 
   // Tick every second so the running Agent/QC UT re-renders live.
   const [, setNow] = useState(() => Date.now());
@@ -123,7 +128,7 @@ const CalendarInviteView = ({ role }) => {
     try {
       await fn(...args);
       toastSuccess(msg);
-      fetchList();
+      fetchList(true);
     } catch (err) {
       toastError(errMessage(err, 'Action failed'));
     } finally {

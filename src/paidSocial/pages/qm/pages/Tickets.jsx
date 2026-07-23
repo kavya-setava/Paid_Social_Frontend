@@ -23,6 +23,7 @@ const Tickets = () => {
 
     const activeStatusRef = useRef(activeStatus);
     activeStatusRef.current = activeStatus;
+    const reqIdRef = useRef(0); // guards against stale (out-of-order) responses
 
     // Client-side search (all columns) + 10-per-page pagination.
     const { query, setQuery, page, setPage, total, totalPages, pageRows } = useClientTable(tickets, 10);
@@ -30,38 +31,27 @@ const Tickets = () => {
     // Region agent roster — live-refreshes when anyone's presence changes.
     const operators = useOperators(() => qmApi.getOperators('AGENT'));
 
-    const fetchTickets = useCallback(async () => {
-        setLoading(true);
+    const fetchTickets = useCallback(async (silent = false) => {
+        const reqId = ++reqIdRef.current;
+        const tab = activeStatusRef.current;
+        if (!silent) setLoading(true);
         try {
-            const q = { ...QM_TAB_QUERY[activeStatusRef.current], limit: 200 };
-            const res = await qmApi.getTickets(q);
+            const q = { ...QM_TAB_QUERY[tab], limit: 200, counts: 'false' };
+            const [res, countsRes] = await Promise.all([
+                qmApi.getTickets(q),
+                qmApi.getCounts(),
+            ]);
+            // Ignore if the tab changed / a newer fetch started meanwhile.
+            if (reqId !== reqIdRef.current || tab !== activeStatusRef.current) return;
             setTickets(normalizeList(res?.data || []));
-
-            // Split combined counts the envelope can't break down on its own:
-            // RTT → unassigned/assigned, and ON_HOLD → agent-held/QC-held.
-            const base = mapCounts(res?.counts || {});
-            try {
-                const [un, holdAgent, holdQc, completed] = await Promise.all([
-                    qmApi.getTickets({ status: 'RTT', assigned: 'false', limit: 1 }),
-                    qmApi.getTickets({ status: 'ON_HOLD', holdReturn: 'IN_PROGRESS', limit: 1 }),
-                    qmApi.getTickets({ status: 'ON_HOLD', holdReturn: 'IN_QC', limit: 1 }),
-                    qmApi.getTickets({ status: 'TRAFFICKED', ciCompleted: 'true', limit: 1 }),
-                ]);
-                const unassigned = un?.total ?? 0;
-                base.rttUnassigned = unassigned;
-                base.rttAssigned = Math.max(0, (res?.counts?.RTT ?? 0) - unassigned);
-                base.onHold = holdAgent?.total ?? 0;
-                base.qcOnHold = holdQc?.total ?? 0;
-                const completedCount = completed?.total ?? 0;
-                base.completed = completedCount;
-                base.trafficked = Math.max(0, (res?.counts?.TRAFFICKED ?? 0) - completedCount);
-            } catch (_) { /* keep combined fallback */ }
-            setCounts(base);
+            setCounts(countsRes?.counts || mapCounts(res?.counts || {}));
         } catch (err) {
-            toastError(errMessage(err, 'Failed to load tickets'));
-            setTickets([]);
+            if (reqId === reqIdRef.current) {
+                toastError(errMessage(err, 'Failed to load tickets'));
+                setTickets([]);
+            }
         } finally {
-            setLoading(false);
+            if (reqId === reqIdRef.current && !silent) setLoading(false);
         }
     }, []);
 
@@ -69,8 +59,8 @@ const Tickets = () => {
         fetchTickets();
     }, [activeStatus, fetchTickets]);
 
-    // Live refresh on any ticket event.
-    usePaidSocket(() => fetchTickets());
+    // Live refresh on any ticket event — silent (no loading flash).
+    usePaidSocket(() => fetchTickets(true));
 
     const handleAssign = async (ticketId, agentId) => {
         if (!agentId) return;
@@ -78,7 +68,7 @@ const Tickets = () => {
         try {
             await qmApi.assign(ticketId, agentId);
             toastSuccess('Ticket assigned to agent');
-            fetchTickets();
+            fetchTickets(true);
         } catch (err) {
             toastError(errMessage(err, 'Could not assign ticket'));
         } finally {
@@ -92,7 +82,7 @@ const Tickets = () => {
             const res = await qmApi.autoAssign();
             if (res?.success) {
                 toastSuccess(res.message || 'Tickets auto-assigned');
-                fetchTickets();
+                fetchTickets(true);
             } else {
                 toastError(res?.message || 'Auto-assign failed');
             }

@@ -75,8 +75,18 @@ const TicketsTable = ({
   transferringId = null,
   onTransfer = () => { },
   onEdit = null,          // (ticket) => void — Edit pencil on All/Trafficked
-  onFieldSave = null,     // (id, key, value) => void — inline QC Thread / Tactical Link
 }) => {
+  // Inline QC Thread / Tactical Link drafts — held locally, saved on Submit.
+  const [drafts, setDrafts] = useState({});
+  const draftVal = (t, key) => (drafts[t.id]?.[key] !== undefined ? drafts[t.id][key] : (t[key] || ''));
+  const setDraft = (t, key, val) => setDrafts((prev) => ({
+    ...prev,
+    [t.id]: {
+      qcThread: prev[t.id]?.qcThread !== undefined ? prev[t.id].qcThread : (t.qcThread || ''),
+      tacticalLink: prev[t.id]?.tacticalLink !== undefined ? prev[t.id].tacticalLink : (t.tacticalLink || ''),
+      [key]: val,
+    },
+  }));
   // Tactical Link sits right after QC Thread in every tab.
   const baseTail = (TAB_TAIL[activeStatus] || FULL_TAIL).flatMap((k) =>
     k === 'qcThread' ? ['qcThread', 'tacticalLink'] : [k]
@@ -108,17 +118,14 @@ const TicketsTable = ({
 
   const columnCount = 2 + BASE_COLUMNS.length + 1 + MID_COLUMNS.length + 2 + tailColumns.length + (showActions ? 1 : 0) + (showEdit ? 1 : 0);
 
-  // Inline agent-editable cell for QC Thread / Tactical Link.
+  // Inline agent-editable cell for QC Thread / Tactical Link — kept as a local
+  // draft (no auto-save); persisted only when the ticket is submitted to QC.
   const editableInline = (ticket, key) => (
     <input
-      key={`${ticket.id}-${key}-${ticket[key] || ''}`}
       className="ps-inline-input"
-      defaultValue={ticket[key] || ''}
+      value={draftVal(ticket, key)}
       placeholder={key === 'tacticalLink' ? 'Paste link…' : 'QC thread…'}
-      onBlur={(e) => {
-        const v = e.target.value;
-        if (v !== (ticket[key] || '') && onFieldSave) onFieldSave(ticket.id, key, v);
-      }}
+      onChange={(e) => setDraft(ticket, key, e.target.value)}
     />
   );
 
@@ -225,7 +232,11 @@ const TicketsTable = ({
                     {col.key === 'qcer' && showHistoryIcons
                       ? peopleCell(ticket, ticket.qcer, 'QC')
                       : (col.key === 'qcThread' || col.key === 'tacticalLink')
-                        ? editableInline(ticket, col.key)
+                        ? (activeStatus === 'inProgress'
+                            ? editableInline(ticket, col.key)
+                            : (ticket[col.key]
+                                ? <a className="ps-link" href={ticket[col.key]} target="_blank" rel="noreferrer">Link</a>
+                                : '—'))
                         : (ticket[col.key] || '—')}
                   </td>
                 ))}
@@ -235,6 +246,8 @@ const TicketsTable = ({
                       ticket={ticket}
                       mode={mode}
                       busy={busyId === ticket.id}
+                      qcThread={draftVal(ticket, 'qcThread')}
+                      tacticalLink={draftVal(ticket, 'tacticalLink')}
                       onStart={actions.onStart}
                       onHold={actions.onHold}
                       onResume={actions.onResume}
@@ -279,7 +292,6 @@ TicketsTable.propTypes = {
   transferringId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onTransfer: PropTypes.func,
   onEdit: PropTypes.func,
-  onFieldSave: PropTypes.func,
 };
 
 export default TicketsTable;

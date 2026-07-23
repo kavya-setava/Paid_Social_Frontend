@@ -44,7 +44,7 @@
 .ci-page .status-label {
   font-size: 12px;
   color: #9ca3af;
-  text-transform: uppercase;
+  text-transform: none; /* Title Case (matches other tabs) */
   letter-spacing: 0.4px;
 }
 

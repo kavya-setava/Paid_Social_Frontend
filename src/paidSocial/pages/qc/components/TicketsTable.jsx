@@ -81,10 +81,9 @@ const TicketsTable = ({
         }
         if (key === 'socialiteLink' || key === 'tacticalLink' || key === 'qcThread') {
             const url = ticket[key];
-            if (!url) return '—';
-            return /^https?:\/\//i.test(url)
+            return url
                 ? <a className="ps-link" href={url} target="_blank" rel="noreferrer">Link</a>
-                : String(url);
+                : '—';
         }
         return ticket[key] || '—';
     };

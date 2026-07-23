@@ -48,6 +48,9 @@ export const statusClass = (status) => STATUS_CLASSES[status] || "status-rtt";
 // A user can't be assigned while offline or on break.
 export const isUnavailable = (u = {}) => !u.isOnline || u.isOnBreak;
 
+// A valid link is an http(s) URL (agents must paste real links).
+export const isValidLink = (v) => /^https?:\/\/\S+/i.test(String(v || "").trim());
+
 // Dropdown label: red dot + status suffix for unavailable users.
 export const operatorLabel = (u = {}) => {
   const suffix = !u.isOnline ? " (offline)" : u.isOnBreak ? " (on break)" : "";
