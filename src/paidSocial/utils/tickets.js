@@ -81,19 +81,24 @@ const CI_CLASSES = {
 };
 export const ciStatusClass = (s) => CI_CLASSES[s] || "status-rtt";
 
-// Live-aware CI TAT (seconds) — counts up while the stage is open.
+// Live-aware CI UT (seconds): banked accumulator + the live delta while a
+// stint is running (agentStartAt/qcStartAt set). Freezes when paused/ended.
 export const ciAgentSeconds = (ci = {}) => {
-  if (!ci.agentStartAt) return 0;
-  const end = ci.agentEndAt ? new Date(ci.agentEndAt).getTime() : Date.now();
-  return Math.max(0, Math.floor((end - new Date(ci.agentStartAt).getTime()) / 1000));
+  const banked = ci.agentTatSeconds || 0;
+  const live = ci.agentStartAt
+    ? Math.floor((Date.now() - new Date(ci.agentStartAt).getTime()) / 1000)
+    : 0;
+  return banked + Math.max(0, live);
 };
 export const ciQcSeconds = (ci = {}) => {
-  if (!ci.qcStartAt) return 0;
-  const end = ci.qcEndAt ? new Date(ci.qcEndAt).getTime() : Date.now();
-  return Math.max(0, Math.floor((end - new Date(ci.qcStartAt).getTime()) / 1000));
+  const banked = ci.qcTatSeconds || 0;
+  const live = ci.qcStartAt
+    ? Math.floor((Date.now() - new Date(ci.qcStartAt).getTime()) / 1000)
+    : 0;
+  return banked + Math.max(0, live);
 };
-export const ciAgentRunning = (ci = {}) => !!ci.agentStartAt && !ci.agentEndAt;
-export const ciQcRunning = (ci = {}) => !!ci.qcStartAt && !ci.qcEndAt;
+export const ciAgentRunning = (ci = {}) => !!ci.agentStartAt;
+export const ciQcRunning = (ci = {}) => !!ci.qcStartAt;
 
 /* ------------------------------ time ------------------------------ */
 // The workLog entry for the person CURRENTLY on the ticket for this role.
